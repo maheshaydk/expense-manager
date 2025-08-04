@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="container">
+                <h1>Personal Finance Manager</h1>
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+                    <button class="nav-tab" data-tab="income">Income</button>
+                    <button class="nav-tab" data-tab="savings">Savings</button>
+                    <button class="nav-tab" data-tab="emi">EMI Tracking</button>
+                    <button class="nav-tab" data-tab="lending">Lending/Borrowing</button>
+                    <button class="nav-tab" data-tab="settings">Settings</button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <div class="container">
+                <!-- Dashboard Tab -->
+                <div id="dashboard-tab" class="tab-content active">
+                    <h2>Financial Overview</h2>
+                    <div class="dashboard-cards">
+                        <div class="card dashboard-card">
+                            <div class="card__body">
+                                <h3>Monthly Income</h3>
+                                <div class="metric-value" id="total-income">₹0</div>
+                            </div>
+                        </div>
+                        <div class="card dashboard-card">
+                            <div class="card__body">
+                                <h3>Savings Progress</h3>
+                                <div class="metric-value" id="savings-progress">0%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="savings-progress-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card dashboard-card">
+                            <div class="card__body">
+                                <h3>EMI Outstanding</h3>
+                                <div class="metric-value" id="emi-outstanding">₹0</div>
+                            </div>
+                        </div>
+                        <div class="card dashboard-card">
+                            <div class="card__body">
+                                <h3>Lending Balance</h3>
+                                <div class="metric-value" id="lending-balance">₹0</div>
+                            </div>
+                        </div>
+                        <div class="card dashboard-card">
+                            <div class="card__body">
+                                <h3>Borrowing Balance</h3>
+                                <div class="metric-value" id="borrowing-balance">₹0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Income Tab -->
+                <div id="income-tab" class="tab-content">
+                    <div class="section-header">
+                        <h2>Income Management</h2>
+                        <button class="btn btn--primary" id="add-income-btn">Add Income</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Income History</h3>
+                            <div class="table-container">
+                                <table id="income-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Source</th>
+                                            <th>Category</th>
+                                            <th>Amount</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings Tab -->
+                <div id="savings-tab" class="tab-content">
+                    <div class="section-header">
+                        <h2>Savings Goals</h2>
+                        <button class="btn btn--primary" id="add-savings-btn">Add Savings Goal</button>
+                    </div>
+                    
+                    <div id="savings-categories"></div>
+                </div>
+
+                <!-- EMI Tab -->
+                <div id="emi-tab" class="tab-content">
+                    <div class="section-header">
+                        <h2>EMI Tracking for Friends</h2>
+                        <div class="button-group">
+                            <button class="btn btn--primary" id="add-emi-btn">Add EMI</button>
+                            <button class="btn btn--secondary" id="add-money-received-btn">Record Payment</button>
+                        </div>
+                    </div>
+                    
+                    <div class="emi-sections">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Active EMIs</h3>
+                                <div class="table-container">
+                                    <table id="emi-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Friend</th>
+                                                <th>Loan Amount</th>
+                                                <th>EMI Amount</th>
+                                                <th>Remaining EMIs</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Money Received</h3>
+                                <div class="table-container">
+                                    <table id="money-received-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Friend</th>
+                                                <th>Amount</th>
+                                                <th>Payment Method</th>
+                                                <th>Purpose</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lending/Borrowing Tab -->
+                <div id="lending-tab" class="tab-content">
+                    <div class="section-header">
+                        <h2>Money Lending & Borrowing</h2>
+                        <div class="button-group">
+                            <button class="btn btn--primary" id="add-lending-btn">Record Lending</button>
+                            <button class="btn btn--secondary" id="add-borrowing-btn">Record Borrowing</button>
+                        </div>
+                    </div>
+                    
+                    <div class="lending-sections">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Money Lent</h3>
+                                <div class="table-container">
+                                    <table id="lending-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Borrower</th>
+                                                <th>Amount</th>
+                                                <th>Date Lent</th>
+                                                <th>Due Date</th>
+                                                <th>Interest Rate</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Money Borrowed</h3>
+                                <div class="table-container">
+                                    <table id="borrowing-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Lender</th>
+                                                <th>Amount</th>
+                                                <th>Date Borrowed</th>
+                                                <th>Due Date</th>
+                                                <th>Interest Rate</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="tab-content">
+                    <h2>Data Management</h2>
+                    
+                    <div class="settings-sections">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Export Data</h3>
+                                <p>Download your data as CSV files for backup or analysis.</p>
+                                <div class="button-group">
+                                    <button class="btn btn--outline" id="export-income">Export Income</button>
+                                    <button class="btn btn--outline" id="export-savings">Export Savings</button>
+                                    <button class="btn btn--outline" id="export-emi">Export EMI Data</button>
+                                    <button class="btn btn--outline" id="export-lending">Export Lending</button>
+                                    <button class="btn btn--outline" id="export-borrowing">Export Borrowing</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>Import Data</h3>
+                                <p>Import data from CSV files. Make sure the CSV format matches the export format.</p>
+                                <div class="import-section">
+                                    <input type="file" id="import-file" accept=".csv" class="form-control">
+                                    <select id="import-type" class="form-control">
+                                        <option value="">Select data type</option>
+                                        <option value="income">Income Data</option>
+                                        <option value="savings">Savings Data</option>
+                                        <option value="emi">EMI Data</option>
+                                        <option value="money_received">Money Received Data</option>
+                                        <option value="lending">Lending Data</option>
+                                        <option value="borrowing">Borrowing Data</option>
+                                    </select>
+                                    <button class="btn btn--primary" id="import-data-btn">Import Data</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Add Entry</h3>
+                    <button class="modal-close" id="modal-close-btn">&times;</button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <!-- Modal content will be dynamically inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn--secondary" id="modal-cancel-btn">Cancel</button>
+                    <button class="btn btn--primary" id="modal-save-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
