@@ -1,1205 +1,737 @@
-// Personal Finance Manager Application
-class FinanceManager {
+// Monthly Finance Tracker Application
+class FinanceTracker {
     constructor() {
-        this.data = {
-            monthly_income: [],
-            savings_categories: [],
-            emi_for_friends: [],
-            money_received: [],
-            money_lending: [],
-            money_borrowing: []
-        };
-        
-        this.categories = {
-            savings: ["Emergency Fund", "Vacation", "Investment", "Education", "Home Purchase", "Retirement", "Healthcare", "Entertainment", "Custom"],
-            income: ["Primary Income", "Secondary Income", "Bonus", "Investment Returns", "Other"],
-            payment_methods: ["Cash", "Bank Transfer", "UPI", "Credit Card", "Debit Card", "Check", "Other"],
-            status_options: ["Active", "Partially Paid", "Fully Paid", "Overdue", "Cancelled"]
-        };
-        
-        this.currentEditId = null;
-        this.currentEditType = null;
-        this.currentTab = 'dashboard';
+        this.months = ["January", "February", "March", "April", "May", "June", 
+                      "July", "August", "September", "October", "November", "December"];
+        this.savingsData = {};
+        this.lendingData = {};
+        this.emiData = {};
+        this.charts = {};
         
         this.init();
     }
-    
+
     init() {
         this.loadData();
-        this.initializeEventListeners();
-        this.renderAllTabs();
+        this.initTabs();
+        this.initTables();
+        this.initEventListeners();
         this.updateDashboard();
     }
-    
+
     // Data Management
     loadData() {
-        const savedData = localStorage.getItem('financeManagerData');
-        if (savedData) {
-            this.data = JSON.parse(savedData);
+        // Load from localStorage or use sample data
+        const saved = localStorage.getItem('financeTrackerData');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                this.savingsData = data.savings || {};
+                this.lendingData = data.lending || {};
+                this.emiData = data.emi || {};
+            } catch (e) {
+                console.error('Error loading saved data:', e);
+                this.loadSampleData();
+            }
         } else {
-            // Initialize with sample data
-            this.initializeSampleData();
+            this.loadSampleData();
         }
     }
-    
+
     saveData() {
-        localStorage.setItem('financeManagerData', JSON.stringify(this.data));
+        try {
+            const data = {
+                savings: this.savingsData,
+                lending: this.lendingData,
+                emi: this.emiData
+            };
+            localStorage.setItem('financeTrackerData', JSON.stringify(data));
+        } catch (e) {
+            console.error('Error saving data:', e);
+        }
     }
-    
-    initializeSampleData() {
-        this.data = {
-            monthly_income: [
-                {id: 1, amount: 50000, source: "Salary", date: "2025-08-01", category: "Primary Income"},
-                {id: 2, amount: 5000, source: "Freelance", date: "2025-08-15", category: "Secondary Income"}
-            ],
-            savings_categories: [
-                {id: 1, category_name: "Emergency Fund", target_amount: 100000, current_amount: 45000, monthly_contribution: 10000, deadline: "2025-12-31"},
-                {id: 2, category_name: "Vacation", target_amount: 30000, current_amount: 15000, monthly_contribution: 5000, deadline: "2025-10-31"},
-                {id: 3, category_name: "Investment", target_amount: 200000, current_amount: 80000, monthly_contribution: 15000, deadline: "2026-06-30"}
-            ],
-            emi_for_friends: [
-                {id: 1, friend_name: "John", loan_amount: 100000, emi_amount: 5000, start_date: "2025-01-01", end_date: "2026-08-01", remaining_emis: 12, purpose: "Personal Loan", status: "Active"},
-                {id: 2, friend_name: "Sarah", loan_amount: 50000, emi_amount: 2500, start_date: "2025-03-01", end_date: "2026-02-01", remaining_emis: 6, purpose: "Education Loan", status: "Active"}
-            ],
-            money_received: [
-                {id: 1, friend_name: "John", amount_received: 5000, date_received: "2025-08-01", payment_method: "Bank Transfer", purpose: "EMI Payment"},
-                {id: 2, friend_name: "Sarah", amount_received: 2500, date_received: "2025-08-01", payment_method: "Cash", purpose: "EMI Payment"}
-            ],
-            money_lending: [
-                {id: 1, borrower_name: "Mike", loan_amount: 25000, date_lent: "2025-07-01", due_date: "2025-12-01", interest_rate: 5, status: "Active", purpose: "Business Investment"},
-                {id: 2, borrower_name: "Lisa", loan_amount: 15000, date_lent: "2025-06-15", due_date: "2025-11-15", interest_rate: 0, status: "Active", purpose: "Emergency"}
-            ],
-            money_borrowing: [
-                {id: 1, lender_name: "Dad", borrowed_amount: 75000, date_borrowed: "2025-05-01", due_date: "2026-05-01", interest_rate: 0, status: "Active", purpose: "Home Down Payment"}
-            ]
+
+    loadSampleData() {
+        // Sample savings data
+        this.savingsData = {
+            "NPS Tier I": {"January": 50000, "February": 0, "March": 0, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "NPS Tier II": {"January": 10000, "February": 10000, "March": 10000, "April": 10000, "May": 10000, "June": 10000, "July": 10000, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "LIC - Term": {"January": 36865, "February": 0, "March": 0, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "LIC - Self": {"January": 2852, "February": 2852, "March": 2852, "April": 2852, "May": 2852, "June": 2852, "July": 2852, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "LIC - Shruthi": {"January": 8156, "February": 8156, "March": 8156, "April": 8156, "May": 8156, "June": 8156, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Emergency Fund": {"January": 10000, "February": 20000, "March": 20000, "April": 20000, "May": 20000, "June": 20000, "July": 20000, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "RD": {"January": 0, "February": 20000, "March": 20000, "April": 20000, "May": 20000, "June": 20000, "July": 20000, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Gold": {"January": 0, "February": 0, "March": 0, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "EPF": {"January": 3600, "February": 3600, "March": 3600, "April": 3600, "May": 3600, "June": 3600, "July": 3600, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Kuri": {"January": 5000, "February": 5000, "March": 4565, "April": 3995, "May": 4230, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "FD": {"January": 0, "February": 0, "March": 0, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Extra": {"January": 158057, "February": 72943, "March": 113317, "April": 64608, "May": 69608, "June": 69608, "July": 69173, "August": 226660, "September": 141781, "October": 0, "November": 0, "December": 0}
         };
+
+        // Sample lending data
+        this.lendingData = {
+            "Nagesha": {"January": 100000, "February": 5000, "March": 105000, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Pramod": {"January": 229620, "February": 15000, "March": -15000, "April": 229620, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Sathisha": {"January": 35000, "February": 35000, "March": 0, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Varma": {"January": 0, "February": 0, "March": 0, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Mava": {"January": 36000, "February": 36000, "March": 0, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Shivaprasad": {"January": 7875, "February": -165932, "March": 136457, "April": -21600, "May": 400620, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0}
+        };
+
+        // Sample EMI data
+        this.emiData = {
+            "Hari": {"January": 14908, "February": 14908, "March": 14908, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Nagesh": {"January": 5000, "February": 11955, "March": 11955, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0},
+            "Putta": {"January": 0, "February": 0, "March": 0, "April": 0, "May": 0, "June": 0, "July": 0, "August": 0, "September": 0, "October": 0, "November": 0, "December": 0}
+        };
+
         this.saveData();
     }
-    
-    // Event Listeners
-    initializeEventListeners() {
-        // Tab navigation with proper event handling
-        const tabElements = document.querySelectorAll('.nav-tab');
-        tabElements.forEach(tab => {
-            tab.addEventListener('click', (e) => {
+
+    // Tab Navigation - Fixed
+    initTabs() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
-                const tabName = tab.getAttribute('data-tab');
-                console.log('Tab clicked:', tabName); // Debug log
-                this.switchTab(tabName);
+                const tabId = btn.dataset.tab;
+                
+                // Remove active from all tabs and panels
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                
+                // Add active to current tab and panel
+                btn.classList.add('active');
+                const targetPanel = document.getElementById(tabId);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+                
+                // Update dashboard when switching to it
+                if (tabId === 'dashboard') {
+                    setTimeout(() => this.updateDashboard(), 100);
+                }
             });
         });
-        
-        // Modal management
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-        const modalCancelBtn = document.getElementById('modal-cancel-btn');
-        const modalSaveBtn = document.getElementById('modal-save-btn');
-        const modalOverlay = document.getElementById('modal-overlay');
-        
-        if (modalCloseBtn) modalCloseBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.closeModal();
-        });
-        
-        if (modalCancelBtn) modalCancelBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.closeModal();
-        });
-        
-        if (modalSaveBtn) modalSaveBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.saveModalData();
-        });
-        
-        if (modalOverlay) modalOverlay.addEventListener('click', (e) => {
-            if (e.target.id === 'modal-overlay') {
-                this.closeModal();
-            }
-        });
-        
-        // Add buttons with proper event handling
-        const addIncomeBtn = document.getElementById('add-income-btn');
-        const addSavingsBtn = document.getElementById('add-savings-btn');
-        const addEmiBtn = document.getElementById('add-emi-btn');
-        const addMoneyReceivedBtn = document.getElementById('add-money-received-btn');
-        const addLendingBtn = document.getElementById('add-lending-btn');
-        const addBorrowingBtn = document.getElementById('add-borrowing-btn');
-        
-        if (addIncomeBtn) addIncomeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openIncomeModal();
-        });
-        
-        if (addSavingsBtn) addSavingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openSavingsModal();
-        });
-        
-        if (addEmiBtn) addEmiBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openEMIModal();
-        });
-        
-        if (addMoneyReceivedBtn) addMoneyReceivedBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openMoneyReceivedModal();
-        });
-        
-        if (addLendingBtn) addLendingBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openLendingModal();
-        });
-        
-        if (addBorrowingBtn) addBorrowingBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openBorrowingModal();
-        });
-        
-        // Export buttons
-        const exportButtons = [
-            { id: 'export-income', type: 'income' },
-            { id: 'export-savings', type: 'savings' },
-            { id: 'export-emi', type: 'emi' },
-            { id: 'export-lending', type: 'lending' },
-            { id: 'export-borrowing', type: 'borrowing' }
-        ];
-        
-        exportButtons.forEach(btn => {
-            const element = document.getElementById(btn.id);
-            if (element) {
-                element.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.exportData(btn.type);
-                });
-            }
-        });
-        
-        // Import functionality
-        const importBtn = document.getElementById('import-data-btn');
-        if (importBtn) {
-            importBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.importData();
-            });
-        }
     }
-    
-    // Tab Management
-    switchTab(tabName) {
-        console.log('Switching to tab:', tabName); // Debug log
-        
-        // Update current tab
-        this.currentTab = tabName;
-        
-        // Update active tab visual state
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
-        if (activeTab) {
-            activeTab.classList.add('active');
-        }
-        
-        // Show corresponding content
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        
-        const activeContent = document.getElementById(`${tabName}-tab`);
-        if (activeContent) {
-            activeContent.classList.add('active');
-        }
-        
-        // Render tab content
-        this.renderTab(tabName);
+
+    // Table Initialization
+    initTables() {
+        this.renderSavingsTable();
+        this.renderLendingTable();
+        this.renderEMITable();
     }
-    
-    renderTab(tabName) {
-        switch(tabName) {
-            case 'dashboard':
-                this.updateDashboard();
-                break;
-            case 'income':
-                this.renderIncomeTable();
-                break;
-            case 'savings':
-                this.renderSavingsCategories();
-                break;
-            case 'emi':
-                this.renderEMITables();
-                break;
-            case 'lending':
-                this.renderLendingTables();
-                break;
-            case 'settings':
-                // Settings tab doesn't need special rendering
-                break;
-        }
-    }
-    
-    renderAllTabs() {
-        this.renderIncomeTable();
-        this.renderSavingsCategories();
-        this.renderEMITables();
-        this.renderLendingTables();
-    }
-    
-    // Dashboard
-    updateDashboard() {
-        // Calculate total income
-        const totalIncome = this.data.monthly_income.reduce((sum, income) => sum + income.amount, 0);
-        const totalIncomeEl = document.getElementById('total-income');
-        if (totalIncomeEl) totalIncomeEl.textContent = `₹${totalIncome.toLocaleString()}`;
-        
-        // Calculate savings progress
-        const savingsProgress = this.calculateSavingsProgress();
-        const savingsProgressEl = document.getElementById('savings-progress');
-        const savingsProgressBarEl = document.getElementById('savings-progress-bar');
-        if (savingsProgressEl) savingsProgressEl.textContent = `${savingsProgress.toFixed(1)}%`;
-        if (savingsProgressBarEl) savingsProgressBarEl.style.width = `${savingsProgress}%`;
-        
-        // Calculate EMI outstanding
-        const emiOutstanding = this.data.emi_for_friends
-            .filter(emi => emi.status === 'Active')
-            .reduce((sum, emi) => sum + (emi.emi_amount * emi.remaining_emis), 0);
-        const emiOutstandingEl = document.getElementById('emi-outstanding');
-        if (emiOutstandingEl) emiOutstandingEl.textContent = `₹${emiOutstanding.toLocaleString()}`;
-        
-        // Calculate lending balance
-        const lendingBalance = this.data.money_lending
-            .filter(loan => loan.status === 'Active')
-            .reduce((sum, loan) => sum + loan.loan_amount, 0);
-        const lendingBalanceEl = document.getElementById('lending-balance');
-        if (lendingBalanceEl) lendingBalanceEl.textContent = `₹${lendingBalance.toLocaleString()}`;
-        
-        // Calculate borrowing balance
-        const borrowingBalance = this.data.money_borrowing
-            .filter(loan => loan.status === 'Active')
-            .reduce((sum, loan) => sum + loan.borrowed_amount, 0);
-        const borrowingBalanceEl = document.getElementById('borrowing-balance');
-        if (borrowingBalanceEl) borrowingBalanceEl.textContent = `₹${borrowingBalance.toLocaleString()}`;
-    }
-    
-    calculateSavingsProgress() {
-        if (this.data.savings_categories.length === 0) return 0;
-        
-        const totalProgress = this.data.savings_categories.reduce((sum, category) => {
-            const progress = (category.current_amount / category.target_amount) * 100;
-            return sum + Math.min(progress, 100);
-        }, 0);
-        
-        return totalProgress / this.data.savings_categories.length;
-    }
-    
-    // Income Management
-    renderIncomeTable() {
-        const tbody = document.querySelector('#income-table tbody');
+
+    renderSavingsTable() {
+        const tbody = document.getElementById('savingsTableBody');
         if (!tbody) return;
         
         tbody.innerHTML = '';
-        
-        this.data.monthly_income.forEach(income => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${new Date(income.date).toLocaleDateString()}</td>
-                <td>${income.source}</td>
-                <td>${income.category}</td>
-                <td>₹${income.amount.toLocaleString()}</td>
-                <td>
-                    <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.editIncome(${income.id})">Edit</button>
-                    <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.deleteIncome(${income.id})">Delete</button>
-                </td>
-            `;
+
+        Object.keys(this.savingsData).forEach(category => {
+            const row = this.createEditableRow(category, this.savingsData[category], 'savings');
             tbody.appendChild(row);
         });
+
+        this.updateTableTotals('savings');
     }
-    
-    openIncomeModal(incomeId = null) {
-        this.currentEditId = incomeId;
-        this.currentEditType = 'income';
+
+    renderLendingTable() {
+        const tbody = document.getElementById('lendingTableBody');
+        if (!tbody) return;
         
-        const income = incomeId ? this.data.monthly_income.find(i => i.id === incomeId) : null;
+        tbody.innerHTML = '';
+
+        Object.keys(this.lendingData).forEach(person => {
+            const row = this.createEditableRow(person, this.lendingData[person], 'lending');
+            tbody.appendChild(row);
+        });
+
+        this.updateTableTotals('lending');
+    }
+
+    renderEMITable() {
+        const tbody = document.getElementById('emiTableBody');
+        if (!tbody) return;
         
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
+        tbody.innerHTML = '';
+
+        Object.keys(this.emiData).forEach(person => {
+            const row = this.createEditableRow(person, this.emiData[person], 'emi');
+            tbody.appendChild(row);
+        });
+
+        this.updateTableTotals('emi');
+    }
+
+    createEditableRow(name, data, tableType) {
+        const row = document.createElement('tr');
         
-        if (modalTitle) modalTitle.textContent = incomeId ? 'Edit Income' : 'Add Income';
+        // Category/Person name cell with delete button
+        const nameCell = document.createElement('td');
+        nameCell.innerHTML = `
+            ${name}
+            <button class="delete-row-btn" onclick="financeTracker.deleteRow('${name}', '${tableType}')" title="Delete ${name}">×</button>
+        `;
+        row.appendChild(nameCell);
+
+        // Month cells
+        this.months.forEach((month, index) => {
+            const cell = document.createElement('td');
+            const value = data[month] || 0;
+            cell.className = 'editable-cell';
+            cell.textContent = this.formatCurrency(value);
+            cell.dataset.name = name;
+            cell.dataset.month = month;
+            cell.dataset.table = tableType;
+            
+            // Add balance styling for lending table
+            if (tableType === 'lending' && value !== 0) {
+                cell.classList.add(value > 0 ? 'positive-balance' : 'negative-balance');
+            }
+            
+            this.makeEditable(cell);
+            row.appendChild(cell);
+        });
+
+        // Total cell
+        const totalCell = document.createElement('td');
+        totalCell.className = 'row-total';
         
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <form class="modal-form">
-                    <div class="form-group">
-                        <label class="form-label">Amount</label>
-                        <input type="number" id="income-amount" class="form-control" required value="${income?.amount || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Source</label>
-                        <input type="text" id="income-source" class="form-control" required value="${income?.source || ''}">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Date</label>
-                            <input type="date" id="income-date" class="form-control" required value="${income?.date || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Category</label>
-                            <select id="income-category" class="form-control" required>
-                                ${this.categories.income.map(cat => 
-                                    `<option value="${cat}" ${income?.category === cat ? 'selected' : ''}>${cat}</option>`
-                                ).join('')}
-                            </select>
-                        </div>
-                    </div>
-                </form>
-            `;
+        if (tableType === 'lending') {
+            // For lending, show running balance
+            const balance = this.calculateRunningBalance(data);
+            totalCell.textContent = this.formatCurrency(balance);
+            totalCell.classList.add(balance >= 0 ? 'positive-balance' : 'negative-balance');
+        } else {
+            // For savings and EMI, show sum
+            const total = Object.values(data).reduce((sum, val) => sum + (val || 0), 0);
+            totalCell.textContent = this.formatCurrency(total);
         }
         
-        this.showModal();
-    }
-    
-    editIncome(id) {
-        this.openIncomeModal(id);
-    }
-    
-    deleteIncome(id) {
-        if (confirm('Are you sure you want to delete this income entry?')) {
-            this.data.monthly_income = this.data.monthly_income.filter(income => income.id !== id);
-            this.saveData();
-            this.renderIncomeTable();
-            this.updateDashboard();
-        }
-    }
-    
-    // Savings Management
-    renderSavingsCategories() {
-        const container = document.getElementById('savings-categories');
-        if (!container) return;
+        row.appendChild(totalCell);
         
-        container.innerHTML = '';
-        
-        this.data.savings_categories.forEach(category => {
-            const progress = (category.current_amount / category.target_amount) * 100;
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'card savings-category';
-            categoryDiv.innerHTML = `
-                <div class="card__body">
-                    <div class="savings-header">
-                        <h3>${category.category_name}</h3>
-                        <div class="button-group">
-                            <button class="btn btn--sm btn--outline" onclick="window.financeManager.editSavings(${category.id})">Edit</button>
-                            <button class="btn btn--sm btn--outline" onclick="window.financeManager.deleteSavings(${category.id})">Delete</button>
-                        </div>
-                    </div>
-                    <div class="savings-progress">
-                        <div class="savings-stat">
-                            <div class="savings-stat-label">Current</div>
-                            <div class="savings-stat-value">₹${category.current_amount.toLocaleString()}</div>
-                        </div>
-                        <div class="savings-stat">
-                            <div class="savings-stat-label">Target</div>
-                            <div class="savings-stat-value">₹${category.target_amount.toLocaleString()}</div>
-                        </div>
-                        <div class="savings-stat">
-                            <div class="savings-stat-label">Monthly</div>
-                            <div class="savings-stat-value">₹${category.monthly_contribution.toLocaleString()}</div>
-                        </div>
-                        <div class="savings-stat">
-                            <div class="savings-stat-label">Progress</div>
-                            <div class="savings-stat-value">${progress.toFixed(1)}%</div>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${Math.min(progress, 100)}%"></div>
-                    </div>
-                    <p style="margin-top: var(--space-8); font-size: var(--font-size-sm); color: var(--color-text-secondary);">
-                        Deadline: ${new Date(category.deadline).toLocaleDateString()}
-                    </p>
-                </div>
-            `;
-            container.appendChild(categoryDiv);
+        return row;
+    }
+
+    makeEditable(cell) {
+        cell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (cell.classList.contains('editing')) return;
+            
+            const currentValue = this.parseCurrency(cell.textContent);
+            cell.classList.add('editing');
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = currentValue;
+            input.style.width = '100%';
+            input.style.border = 'none';
+            input.style.background = 'transparent';
+            input.style.color = 'inherit';
+            input.style.textAlign = 'right';
+            input.style.outline = 'none';
+            
+            cell.innerHTML = '';
+            cell.appendChild(input);
+            input.focus();
+            input.select();
+
+            const saveValue = () => {
+                const newValue = parseFloat(input.value) || 0;
+                const name = cell.dataset.name;
+                const month = cell.dataset.month;
+                const table = cell.dataset.table;
+                
+                // Update data
+                if (table === 'savings') {
+                    if (!this.savingsData[name]) this.savingsData[name] = {};
+                    this.savingsData[name][month] = newValue;
+                } else if (table === 'lending') {
+                    if (!this.lendingData[name]) this.lendingData[name] = {};
+                    this.lendingData[name][month] = newValue;
+                } else if (table === 'emi') {
+                    if (!this.emiData[name]) this.emiData[name] = {};
+                    this.emiData[name][month] = newValue;
+                }
+                
+                // Update display
+                cell.textContent = this.formatCurrency(newValue);
+                cell.classList.remove('editing');
+                
+                // Add balance styling for lending
+                if (table === 'lending' && newValue !== 0) {
+                    cell.classList.remove('positive-balance', 'negative-balance');
+                    cell.classList.add(newValue > 0 ? 'positive-balance' : 'negative-balance');
+                } else if (table === 'lending' && newValue === 0) {
+                    cell.classList.remove('positive-balance', 'negative-balance');
+                }
+                
+                // Update totals and save
+                this.updateTableTotals(table);
+                this.saveData();
+                this.updateDashboard();
+            };
+
+            input.addEventListener('blur', saveValue);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveValue();
+                }
+                if (e.key === 'Escape') {
+                    cell.textContent = this.formatCurrency(currentValue);
+                    cell.classList.remove('editing');
+                }
+            });
         });
     }
-    
-    openSavingsModal(savingsId = null) {
-        this.currentEditId = savingsId;
-        this.currentEditType = 'savings';
+
+    deleteRow(name, tableType) {
+        if (!confirm(`Are you sure you want to delete ${name}?`)) return;
         
-        const savings = savingsId ? this.data.savings_categories.find(s => s.id === savingsId) : null;
-        
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        
-        if (modalTitle) modalTitle.textContent = savingsId ? 'Edit Savings Goal' : 'Add Savings Goal';
-        
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <form class="modal-form">
-                    <div class="form-group">
-                        <label class="form-label">Category Name</label>
-                        <select id="savings-category" class="form-control" required>
-                            ${this.categories.savings.map(cat => 
-                                `<option value="${cat}" ${savings?.category_name === cat ? 'selected' : ''}>${cat}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Target Amount</label>
-                            <input type="number" id="savings-target" class="form-control" required value="${savings?.target_amount || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Current Amount</label>
-                            <input type="number" id="savings-current" class="form-control" required value="${savings?.current_amount || ''}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Monthly Contribution</label>
-                            <input type="number" id="savings-monthly" class="form-control" required value="${savings?.monthly_contribution || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Deadline</label>
-                            <input type="date" id="savings-deadline" class="form-control" required value="${savings?.deadline || ''}">
-                        </div>
-                    </div>
-                </form>
-            `;
-        }
-        
-        this.showModal();
-    }
-    
-    editSavings(id) {
-        this.openSavingsModal(id);
-    }
-    
-    deleteSavings(id) {
-        if (confirm('Are you sure you want to delete this savings goal?')) {
-            this.data.savings_categories = this.data.savings_categories.filter(savings => savings.id !== id);
-            this.saveData();
-            this.renderSavingsCategories();
-            this.updateDashboard();
-        }
-    }
-    
-    // EMI Management
-    renderEMITables() {
-        // Render EMI table
-        const emiTbody = document.querySelector('#emi-table tbody');
-        if (emiTbody) {
-            emiTbody.innerHTML = '';
-            
-            this.data.emi_for_friends.forEach(emi => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${emi.friend_name}</td>
-                    <td>₹${emi.loan_amount.toLocaleString()}</td>
-                    <td>₹${emi.emi_amount.toLocaleString()}</td>
-                    <td>${emi.remaining_emis}</td>
-                    <td><span class="status status--${emi.status.toLowerCase()}">${emi.status}</span></td>
-                    <td>
-                        <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.editEMI(${emi.id})">Edit</button>
-                        <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.deleteEMI(${emi.id})">Delete</button>
-                    </td>
-                `;
-                emiTbody.appendChild(row);
-            });
-        }
-        
-        // Render money received table
-        const receivedTbody = document.querySelector('#money-received-table tbody');
-        if (receivedTbody) {
-            receivedTbody.innerHTML = '';
-            
-            this.data.money_received.forEach(received => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${new Date(received.date_received).toLocaleDateString()}</td>
-                    <td>${received.friend_name}</td>
-                    <td>₹${received.amount_received.toLocaleString()}</td>
-                    <td>${received.payment_method}</td>
-                    <td>${received.purpose}</td>
-                    <td>
-                        <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.editMoneyReceived(${received.id})">Edit</button>
-                        <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.deleteMoneyReceived(${received.id})">Delete</button>
-                    </td>
-                `;
-                receivedTbody.appendChild(row);
-            });
-        }
-    }
-    
-    openEMIModal(emiId = null) {
-        this.currentEditId = emiId;
-        this.currentEditType = 'emi';
-        
-        const emi = emiId ? this.data.emi_for_friends.find(e => e.id === emiId) : null;
-        
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        
-        if (modalTitle) modalTitle.textContent = emiId ? 'Edit EMI' : 'Add EMI';
-        
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <form class="modal-form">
-                    <div class="form-group">
-                        <label class="form-label">Friend Name</label>
-                        <input type="text" id="emi-friend" class="form-control" required value="${emi?.friend_name || ''}">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Loan Amount</label>
-                            <input type="number" id="emi-loan-amount" class="form-control" required value="${emi?.loan_amount || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">EMI Amount</label>
-                            <input type="number" id="emi-amount" class="form-control" required value="${emi?.emi_amount || ''}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" id="emi-start-date" class="form-control" required value="${emi?.start_date || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">End Date</label>
-                            <input type="date" id="emi-end-date" class="form-control" required value="${emi?.end_date || ''}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Remaining EMIs</label>
-                            <input type="number" id="emi-remaining" class="form-control" required value="${emi?.remaining_emis || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status</label>
-                            <select id="emi-status" class="form-control" required>
-                                ${this.categories.status_options.map(status => 
-                                    `<option value="${status}" ${emi?.status === status ? 'selected' : ''}>${status}</option>`
-                                ).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Purpose</label>
-                        <input type="text" id="emi-purpose" class="form-control" required value="${emi?.purpose || ''}">
-                    </div>
-                </form>
-            `;
-        }
-        
-        this.showModal();
-    }
-    
-    openMoneyReceivedModal(receivedId = null) {
-        this.currentEditId = receivedId;
-        this.currentEditType = 'money_received';
-        
-        const received = receivedId ? this.data.money_received.find(r => r.id === receivedId) : null;
-        
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        
-        if (modalTitle) modalTitle.textContent = receivedId ? 'Edit Payment Received' : 'Record Payment Received';
-        
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <form class="modal-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Friend Name</label>
-                            <input type="text" id="received-friend" class="form-control" required value="${received?.friend_name || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Amount Received</label>
-                            <input type="number" id="received-amount" class="form-control" required value="${received?.amount_received || ''}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Date Received</label>
-                            <input type="date" id="received-date" class="form-control" required value="${received?.date_received || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Payment Method</label>
-                            <select id="received-method" class="form-control" required>
-                                ${this.categories.payment_methods.map(method => 
-                                    `<option value="${method}" ${received?.payment_method === method ? 'selected' : ''}>${method}</option>`
-                                ).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Purpose</label>
-                        <input type="text" id="received-purpose" class="form-control" required value="${received?.purpose || ''}">
-                    </div>
-                </form>
-            `;
-        }
-        
-        this.showModal();
-    }
-    
-    editEMI(id) {
-        this.openEMIModal(id);
-    }
-    
-    deleteEMI(id) {
-        if (confirm('Are you sure you want to delete this EMI entry?')) {
-            this.data.emi_for_friends = this.data.emi_for_friends.filter(emi => emi.id !== id);
-            this.saveData();
-            this.renderEMITables();
-            this.updateDashboard();
-        }
-    }
-    
-    editMoneyReceived(id) {
-        this.openMoneyReceivedModal(id);
-    }
-    
-    deleteMoneyReceived(id) {
-        if (confirm('Are you sure you want to delete this payment record?')) {
-            this.data.money_received = this.data.money_received.filter(received => received.id !== id);
-            this.saveData();
-            this.renderEMITables();
-        }
-    }
-    
-    // Lending/Borrowing Management
-    renderLendingTables() {
-        // Render lending table
-        const lendingTbody = document.querySelector('#lending-table tbody');
-        if (lendingTbody) {
-            lendingTbody.innerHTML = '';
-            
-            this.data.money_lending.forEach(loan => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${loan.borrower_name}</td>
-                    <td>₹${loan.loan_amount.toLocaleString()}</td>
-                    <td>${new Date(loan.date_lent).toLocaleDateString()}</td>
-                    <td>${new Date(loan.due_date).toLocaleDateString()}</td>
-                    <td>${loan.interest_rate}%</td>
-                    <td><span class="status status--${loan.status.toLowerCase()}">${loan.status}</span></td>
-                    <td>
-                        <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.editLending(${loan.id})">Edit</button>
-                        <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.deleteLending(${loan.id})">Delete</button>
-                    </td>
-                `;
-                lendingTbody.appendChild(row);
-            });
-        }
-        
-        // Render borrowing table
-        const borrowingTbody = document.querySelector('#borrowing-table tbody');
-        if (borrowingTbody) {
-            borrowingTbody.innerHTML = '';
-            
-            this.data.money_borrowing.forEach(loan => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${loan.lender_name}</td>
-                    <td>₹${loan.borrowed_amount.toLocaleString()}</td>
-                    <td>${new Date(loan.date_borrowed).toLocaleDateString()}</td>
-                    <td>${new Date(loan.due_date).toLocaleDateString()}</td>
-                    <td>${loan.interest_rate}%</td>
-                    <td><span class="status status--${loan.status.toLowerCase()}">${loan.status}</span></td>
-                    <td>
-                        <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.editBorrowing(${loan.id})">Edit</button>
-                        <button class="btn btn--sm btn--outline action-btn" onclick="window.financeManager.deleteBorrowing(${loan.id})">Delete</button>
-                    </td>
-                `;
-                borrowingTbody.appendChild(row);
-            });
-        }
-    }
-    
-    openLendingModal(lendingId = null) {
-        this.currentEditId = lendingId;
-        this.currentEditType = 'lending';
-        
-        const lending = lendingId ? this.data.money_lending.find(l => l.id === lendingId) : null;
-        
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        
-        if (modalTitle) modalTitle.textContent = lendingId ? 'Edit Lending' : 'Record Lending';
-        
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <form class="modal-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Borrower Name</label>
-                            <input type="text" id="lending-borrower" class="form-control" required value="${lending?.borrower_name || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Loan Amount</label>
-                            <input type="number" id="lending-amount" class="form-control" required value="${lending?.loan_amount || ''}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Date Lent</label>
-                            <input type="date" id="lending-date" class="form-control" required value="${lending?.date_lent || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Due Date</label>
-                            <input type="date" id="lending-due-date" class="form-control" required value="${lending?.due_date || ''}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Interest Rate (%)</label>
-                            <input type="number" id="lending-interest" class="form-control" step="0.1" value="${lending?.interest_rate || '0'}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status</label>
-                            <select id="lending-status" class="form-control" required>
-                                ${this.categories.status_options.map(status => 
-                                    `<option value="${status}" ${lending?.status === status ? 'selected' : ''}>${status}</option>`
-                                ).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Purpose</label>
-                        <input type="text" id="lending-purpose" class="form-control" required value="${lending?.purpose || ''}">
-                    </div>
-                </form>
-            `;
-        }
-        
-        this.showModal();
-    }
-    
-    openBorrowingModal(borrowingId = null) {
-        this.currentEditId = borrowingId;
-        this.currentEditType = 'borrowing';
-        
-        const borrowing = borrowingId ? this.data.money_borrowing.find(b => b.id === borrowingId) : null;
-        
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        
-        if (modalTitle) modalTitle.textContent = borrowingId ? 'Edit Borrowing' : 'Record Borrowing';
-        
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <form class="modal-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Lender Name</label>
-                            <input type="text" id="borrowing-lender" class="form-control" required value="${borrowing?.lender_name || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Borrowed Amount</label>
-                            <input type="number" id="borrowing-amount" class="form-control" required value="${borrowing?.borrowed_amount || ''}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Date Borrowed</label>
-                            <input type="date" id="borrowing-date" class="form-control" required value="${borrowing?.date_borrowed || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Due Date</label>
-                            <input type="date" id="borrowing-due-date" class="form-control" required value="${borrowing?.due_date || ''}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Interest Rate (%)</label>
-                            <input type="number" id="borrowing-interest" class="form-control" step="0.1" value="${borrowing?.interest_rate || '0'}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status</label>
-                            <select id="borrowing-status" class="form-control" required>
-                                ${this.categories.status_options.map(status => 
-                                    `<option value="${status}" ${borrowing?.status === status ? 'selected' : ''}>${status}</option>`
-                                ).join('')}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Purpose</label>
-                        <input type="text" id="borrowing-purpose" class="form-control" required value="${borrowing?.purpose || ''}">
-                    </div>
-                </form>
-            `;
-        }
-        
-        this.showModal();
-    }
-    
-    editLending(id) {
-        this.openLendingModal(id);
-    }
-    
-    deleteLending(id) {
-        if (confirm('Are you sure you want to delete this lending record?')) {
-            this.data.money_lending = this.data.money_lending.filter(lending => lending.id !== id);
-            this.saveData();
-            this.renderLendingTables();
-            this.updateDashboard();
-        }
-    }
-    
-    editBorrowing(id) {
-        this.openBorrowingModal(id);
-    }
-    
-    deleteBorrowing(id) {
-        if (confirm('Are you sure you want to delete this borrowing record?')) {
-            this.data.money_borrowing = this.data.money_borrowing.filter(borrowing => borrowing.id !== id);
-            this.saveData();
-            this.renderLendingTables();
-            this.updateDashboard();
-        }
-    }
-    
-    // Modal Management
-    showModal() {
-        const modal = document.getElementById('modal-overlay');
-        if (modal) {
-            modal.classList.remove('hidden');
-        }
-    }
-    
-    closeModal() {
-        const modal = document.getElementById('modal-overlay');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
-        this.currentEditId = null;
-        this.currentEditType = null;
-    }
-    
-    saveModalData() {
-        if (!this.currentEditType) return;
-        
-        const formData = this.getFormData();
-        if (!formData) return;
-        
-        if (this.currentEditId) {
-            this.updateRecord(formData);
-        } else {
-            this.createRecord(formData);
+        if (tableType === 'savings') {
+            delete this.savingsData[name];
+            this.renderSavingsTable();
+        } else if (tableType === 'lending') {
+            delete this.lendingData[name];
+            this.renderLendingTable();
+        } else if (tableType === 'emi') {
+            delete this.emiData[name];
+            this.renderEMITable();
         }
         
         this.saveData();
-        this.renderAllTabs();
         this.updateDashboard();
-        this.closeModal();
     }
-    
-    getFormData() {
-        const type = this.currentEditType;
+
+    updateTableTotals(tableType) {
+        const table = document.getElementById(tableType + 'Table');
+        if (!table) return;
         
-        try {
-            switch (type) {
-                case 'income':
-                    return {
-                        amount: parseFloat(document.getElementById('income-amount').value) || 0,
-                        source: document.getElementById('income-source').value || '',
-                        date: document.getElementById('income-date').value || '',
-                        category: document.getElementById('income-category').value || ''
-                    };
-                case 'savings':
-                    return {
-                        category_name: document.getElementById('savings-category').value || '',
-                        target_amount: parseFloat(document.getElementById('savings-target').value) || 0,
-                        current_amount: parseFloat(document.getElementById('savings-current').value) || 0,
-                        monthly_contribution: parseFloat(document.getElementById('savings-monthly').value) || 0,
-                        deadline: document.getElementById('savings-deadline').value || ''
-                    };
-                case 'emi':
-                    return {
-                        friend_name: document.getElementById('emi-friend').value || '',
-                        loan_amount: parseFloat(document.getElementById('emi-loan-amount').value) || 0,
-                        emi_amount: parseFloat(document.getElementById('emi-amount').value) || 0,
-                        start_date: document.getElementById('emi-start-date').value || '',
-                        end_date: document.getElementById('emi-end-date').value || '',
-                        remaining_emis: parseInt(document.getElementById('emi-remaining').value) || 0,
-                        status: document.getElementById('emi-status').value || '',
-                        purpose: document.getElementById('emi-purpose').value || ''
-                    };
-                case 'money_received':
-                    return {
-                        friend_name: document.getElementById('received-friend').value || '',
-                        amount_received: parseFloat(document.getElementById('received-amount').value) || 0,
-                        date_received: document.getElementById('received-date').value || '',
-                        payment_method: document.getElementById('received-method').value || '',
-                        purpose: document.getElementById('received-purpose').value || ''
-                    };
-                case 'lending':
-                    return {
-                        borrower_name: document.getElementById('lending-borrower').value || '',
-                        loan_amount: parseFloat(document.getElementById('lending-amount').value) || 0,
-                        date_lent: document.getElementById('lending-date').value || '',
-                        due_date: document.getElementById('lending-due-date').value || '',
-                        interest_rate: parseFloat(document.getElementById('lending-interest').value) || 0,
-                        status: document.getElementById('lending-status').value || '',
-                        purpose: document.getElementById('lending-purpose').value || ''
-                    };
-                case 'borrowing':
-                    return {
-                        lender_name: document.getElementById('borrowing-lender').value || '',
-                        borrowed_amount: parseFloat(document.getElementById('borrowing-amount').value) || 0,
-                        date_borrowed: document.getElementById('borrowing-date').value || '',
-                        due_date: document.getElementById('borrowing-due-date').value || '',
-                        interest_rate: parseFloat(document.getElementById('borrowing-interest').value) || 0,
-                        status: document.getElementById('borrowing-status').value || '',
-                        purpose: document.getElementById('borrowing-purpose').value || ''
-                    };
-                default:
-                    return null;
-            }
-        } catch (error) {
-            console.error('Error getting form data:', error);
-            return null;
-        }
-    }
-    
-    createRecord(data) {
-        const type = this.currentEditType;
-        const newId = this.getNextId(type);
-        const record = { id: newId, ...data };
+        const monthTotals = table.querySelectorAll('.month-total');
+        const grandTotalCell = table.querySelector('.grand-total');
         
-        switch (type) {
-            case 'income':
-                this.data.monthly_income.push(record);
-                break;
-            case 'savings':
-                this.data.savings_categories.push(record);
-                break;
-            case 'emi':
-                this.data.emi_for_friends.push(record);
-                break;
-            case 'money_received':
-                this.data.money_received.push(record);
-                break;
-            case 'lending':
-                this.data.money_lending.push(record);
-                break;
-            case 'borrowing':
-                this.data.money_borrowing.push(record);
-                break;
-        }
-    }
-    
-    updateRecord(data) {
-        const type = this.currentEditType;
-        const id = this.currentEditId;
+        if (!monthTotals.length || !grandTotalCell) return;
         
-        switch (type) {
-            case 'income':
-                const incomeIndex = this.data.monthly_income.findIndex(i => i.id === id);
-                if (incomeIndex !== -1) {
-                    this.data.monthly_income[incomeIndex] = { id, ...data };
-                }
-                break;
-            case 'savings':
-                const savingsIndex = this.data.savings_categories.findIndex(s => s.id === id);
-                if (savingsIndex !== -1) {
-                    this.data.savings_categories[savingsIndex] = { id, ...data };
-                }
-                break;
-            case 'emi':
-                const emiIndex = this.data.emi_for_friends.findIndex(e => e.id === id);
-                if (emiIndex !== -1) {
-                    this.data.emi_for_friends[emiIndex] = { id, ...data };
-                }
-                break;
-            case 'money_received':
-                const receivedIndex = this.data.money_received.findIndex(r => r.id === id);
-                if (receivedIndex !== -1) {
-                    this.data.money_received[receivedIndex] = { id, ...data };
-                }
-                break;
-            case 'lending':
-                const lendingIndex = this.data.money_lending.findIndex(l => l.id === id);
-                if (lendingIndex !== -1) {
-                    this.data.money_lending[lendingIndex] = { id, ...data };
-                }
-                break;
-            case 'borrowing':
-                const borrowingIndex = this.data.money_borrowing.findIndex(b => b.id === id);
-                if (borrowingIndex !== -1) {
-                    this.data.money_borrowing[borrowingIndex] = { id, ...data };
-                }
-                break;
-        }
-    }
-    
-    getNextId(type) {
-        const dataMap = {
-            'income': 'monthly_income',
-            'savings': 'savings_categories',
-            'emi': 'emi_for_friends',
-            'money_received': 'money_received',
-            'lending': 'money_lending',
-            'borrowing': 'money_borrowing'
-        };
+        let grandTotal = 0;
         
-        const dataArray = this.data[dataMap[type]];
-        return dataArray.length > 0 ? Math.max(...dataArray.map(item => item.id)) + 1 : 1;
-    }
-    
-    // CSV Export/Import
-    exportData(type) {
-        let data, filename, headers;
-        
-        switch (type) {
-            case 'income':
-                data = this.data.monthly_income;
-                filename = 'income_data.csv';
-                headers = ['id', 'amount', 'source', 'date', 'category'];
-                break;
-            case 'savings':
-                data = this.data.savings_categories;
-                filename = 'savings_data.csv';
-                headers = ['id', 'category_name', 'target_amount', 'current_amount', 'monthly_contribution', 'deadline'];
-                break;
-            case 'emi':
-                data = [...this.data.emi_for_friends, ...this.data.money_received.map(r => ({...r, type: 'received'}))];
-                filename = 'emi_data.csv';
-                headers = ['id', 'friend_name', 'loan_amount', 'emi_amount', 'start_date', 'end_date', 'remaining_emis', 'purpose', 'status', 'type'];
-                break;
-            case 'lending':
-                data = this.data.money_lending;
-                filename = 'lending_data.csv';
-                headers = ['id', 'borrower_name', 'loan_amount', 'date_lent', 'due_date', 'interest_rate', 'status', 'purpose'];
-                break;
-            case 'borrowing':
-                data = this.data.money_borrowing;
-                filename = 'borrowing_data.csv';
-                headers = ['id', 'lender_name', 'borrowed_amount', 'date_borrowed', 'due_date', 'interest_rate', 'status', 'purpose'];
-                break;
-            default:
-                return;
-        }
-        
-        const csvContent = this.arrayToCSV(data, headers);
-        this.downloadCSV(csvContent, filename);
-    }
-    
-    arrayToCSV(data, headers) {
-        const csvRows = [];
-        csvRows.push(headers.join(','));
-        
-        for (const row of data) {
-            const values = headers.map(header => {
-                const value = row[header] || '';
-                return `"${value}"`;
+        // Calculate month totals
+        this.months.forEach((month, index) => {
+            let monthTotal = 0;
+            const data = tableType === 'savings' ? this.savingsData : 
+                         tableType === 'lending' ? this.lendingData : this.emiData;
+            
+            Object.keys(data).forEach(key => {
+                monthTotal += data[key][month] || 0;
             });
-            csvRows.push(values.join(','));
+            
+            if (monthTotals[index]) {
+                monthTotals[index].textContent = this.formatCurrency(monthTotal);
+            }
+            grandTotal += monthTotal;
+        });
+        
+        // Update row totals
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const nameText = row.cells[0].textContent.replace('×', '').trim();
+            const totalCell = row.querySelector('.row-total');
+            if (!totalCell) return;
+            
+            const data = tableType === 'savings' ? this.savingsData[nameText] : 
+                         tableType === 'lending' ? this.lendingData[nameText] : this.emiData[nameText];
+            
+            if (!data) return;
+            
+            if (tableType === 'lending') {
+                const balance = this.calculateRunningBalance(data);
+                totalCell.textContent = this.formatCurrency(balance);
+                totalCell.classList.remove('positive-balance', 'negative-balance');
+                totalCell.classList.add(balance >= 0 ? 'positive-balance' : 'negative-balance');
+            } else {
+                const total = Object.values(data).reduce((sum, val) => sum + (val || 0), 0);
+                totalCell.textContent = this.formatCurrency(total);
+            }
+        });
+        
+        grandTotalCell.textContent = this.formatCurrency(grandTotal);
+    }
+
+    calculateRunningBalance(data) {
+        return Object.values(data || {}).reduce((sum, val) => sum + (val || 0), 0);
+    }
+
+    // Event Listeners
+    initEventListeners() {
+        // Add category/person buttons
+        const addSavingsBtn = document.getElementById('addSavingsCategory');
+        if (addSavingsBtn) {
+            addSavingsBtn.addEventListener('click', () => {
+                this.addNewEntry('savings', 'Category');
+            });
         }
         
-        return csvRows.join('\n');
+        const addLendingBtn = document.getElementById('addLendingPerson');
+        if (addLendingBtn) {
+            addLendingBtn.addEventListener('click', () => {
+                this.addNewEntry('lending', 'Person');
+            });
+        }
+        
+        const addEMIBtn = document.getElementById('addEMIPerson');
+        if (addEMIBtn) {
+            addEMIBtn.addEventListener('click', () => {
+                this.addNewEntry('emi', 'Person');
+            });
+        }
+
+        // Export buttons
+        const exportSavingsBtn = document.getElementById('exportSavings');
+        if (exportSavingsBtn) {
+            exportSavingsBtn.addEventListener('click', () => {
+                this.exportToCSV('savings');
+            });
+        }
+        
+        const exportLendingBtn = document.getElementById('exportLending');
+        if (exportLendingBtn) {
+            exportLendingBtn.addEventListener('click', () => {
+                this.exportToCSV('lending');
+            });
+        }
+        
+        const exportEMIBtn = document.getElementById('exportEMI');
+        if (exportEMIBtn) {
+            exportEMIBtn.addEventListener('click', () => {
+                this.exportToCSV('emi');
+            });
+        }
+        
+        const exportAllBtn = document.getElementById('exportAll');
+        if (exportAllBtn) {
+            exportAllBtn.addEventListener('click', () => {
+                this.exportToCSV('all');
+            });
+        }
+
+        // Import file inputs
+        const importSavingsInput = document.getElementById('importSavings');
+        if (importSavingsInput) {
+            importSavingsInput.addEventListener('change', (e) => {
+                this.importFromCSV(e.target.files[0], 'savings');
+            });
+        }
+        
+        const importLendingInput = document.getElementById('importLending');
+        if (importLendingInput) {
+            importLendingInput.addEventListener('change', (e) => {
+                this.importFromCSV(e.target.files[0], 'lending');
+            });
+        }
+        
+        const importEMIInput = document.getElementById('importEMI');
+        if (importEMIInput) {
+            importEMIInput.addEventListener('change', (e) => {
+                this.importFromCSV(e.target.files[0], 'emi');
+            });
+        }
+
+        // Data management buttons
+        const resetDataBtn = document.getElementById('resetData');
+        if (resetDataBtn) {
+            resetDataBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+                    localStorage.removeItem('financeTrackerData');
+                    this.savingsData = {};
+                    this.lendingData = {};
+                    this.emiData = {};
+                    this.initTables();
+                    this.updateDashboard();
+                }
+            });
+        }
+        
+        const loadSampleBtn = document.getElementById('loadSampleData');
+        if (loadSampleBtn) {
+            loadSampleBtn.addEventListener('click', () => {
+                if (confirm('Load sample data? This will replace current data.')) {
+                    this.loadSampleData();
+                    this.initTables();
+                    this.updateDashboard();
+                }
+            });
+        }
     }
-    
-    downloadCSV(csvContent, filename) {
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+
+    addNewEntry(tableType, entryType) {
+        const name = prompt(`Enter ${entryType} name:`);
+        if (!name || name.trim() === '') return;
+        
+        const cleanName = name.trim();
+        const data = {};
+        this.months.forEach(month => {
+            data[month] = 0;
+        });
+        
+        if (tableType === 'savings') {
+            this.savingsData[cleanName] = data;
+            this.renderSavingsTable();
+        } else if (tableType === 'lending') {
+            this.lendingData[cleanName] = data;
+            this.renderLendingTable();
+        } else if (tableType === 'emi') {
+            this.emiData[cleanName] = data;
+            this.renderEMITable();
+        }
+        
+        this.saveData();
+        this.updateDashboard();
+    }
+
+    // Dashboard
+    updateDashboard() {
+        this.updateMetrics();
+        setTimeout(() => this.updateCharts(), 100);
+    }
+
+    updateMetrics() {
+        // Total Savings
+        const totalSavings = Object.values(this.savingsData).reduce((total, categoryData) => {
+            return total + Object.values(categoryData || {}).reduce((sum, val) => sum + (val || 0), 0);
+        }, 0);
+        
+        // Net Lending
+        const netLending = Object.values(this.lendingData).reduce((total, personData) => {
+            return total + this.calculateRunningBalance(personData);
+        }, 0);
+        
+        // Total EMI
+        const totalEMI = Object.values(this.emiData).reduce((total, personData) => {
+            return total + Object.values(personData || {}).reduce((sum, val) => sum + (val || 0), 0);
+        }, 0);
+        
+        // Monthly Average
+        const monthlyAverage = totalSavings / 12;
+        
+        const totalSavingsEl = document.getElementById('totalSavings');
+        const netLendingEl = document.getElementById('netLending');
+        const totalEMIEl = document.getElementById('totalEMI');
+        const monthlyAverageEl = document.getElementById('monthlyAverage');
+        
+        if (totalSavingsEl) totalSavingsEl.textContent = this.formatCurrency(totalSavings);
+        if (netLendingEl) netLendingEl.textContent = this.formatCurrency(netLending);
+        if (totalEMIEl) totalEMIEl.textContent = this.formatCurrency(totalEMI);
+        if (monthlyAverageEl) monthlyAverageEl.textContent = this.formatCurrency(monthlyAverage);
+    }
+
+    updateCharts() {
+        this.updateSavingsChart();
+        this.updateLendingChart();
+    }
+
+    updateSavingsChart() {
+        const canvas = document.getElementById('savingsChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Calculate monthly totals
+        const monthlyData = this.months.map(month => {
+            return Object.values(this.savingsData).reduce((total, categoryData) => {
+                return total + ((categoryData && categoryData[month]) || 0);
+            }, 0);
+        });
+
+        if (this.charts.savings) {
+            this.charts.savings.destroy();
+        }
+
+        this.charts.savings = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: this.months,
+                datasets: [{
+                    label: 'Monthly Savings',
+                    data: monthlyData,
+                    backgroundColor: '#1FB8CD',
+                    borderColor: '#1FB8CD',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    updateLendingChart() {
+        const canvas = document.getElementById('lendingChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        
+        const people = Object.keys(this.lendingData);
+        const balances = people.map(person => this.calculateRunningBalance(this.lendingData[person]));
+        const colors = ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F', '#DB4545'];
+
+        if (this.charts.lending) {
+            this.charts.lending.destroy();
+        }
+
+        this.charts.lending = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: people,
+                datasets: [{
+                    data: balances.map(Math.abs),
+                    backgroundColor: colors.slice(0, people.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // CSV Export/Import
+    exportToCSV(type) {
+        if (type === 'all') {
+            this.exportToCSV('savings');
+            setTimeout(() => this.exportToCSV('lending'), 100);
+            setTimeout(() => this.exportToCSV('emi'), 200);
+            return;
+        }
+
+        const data = type === 'savings' ? this.savingsData : 
+                     type === 'lending' ? this.lendingData : this.emiData;
+        
+        let csv = 'Name,' + this.months.join(',') + ',Total\n';
+        
+        Object.keys(data).forEach(name => {
+            const row = [name];
+            this.months.forEach(month => {
+                row.push(data[name][month] || 0);
+            });
+            
+            const total = type === 'lending' ? 
+                         this.calculateRunningBalance(data[name]) :
+                         Object.values(data[name] || {}).reduce((sum, val) => sum + (val || 0), 0);
+            row.push(total);
+            
+            csv += row.join(',') + '\n';
+        });
+
+        this.downloadCSV(csv, `${type}_data.csv`);
+    }
+
+    downloadCSV(csv, filename) {
+        const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', filename);
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
     }
-    
-    importData() {
-        const fileInput = document.getElementById('import-file');
-        const typeSelect = document.getElementById('import-type');
+
+    importFromCSV(file, type) {
+        if (!file) return;
         
-        if (!fileInput || !typeSelect || !fileInput.files[0] || !typeSelect.value) {
-            alert('Please select a file and data type');
-            return;
-        }
-        
-        const file = fileInput.files[0];
         const reader = new FileReader();
-        
         reader.onload = (e) => {
             try {
                 const csv = e.target.result;
-                const data = this.parseCSV(csv);
-                this.importParsedData(data, typeSelect.value);
-                alert('Data imported successfully!');
-                this.renderAllTabs();
+                const lines = csv.split('\n');
+                const headers = lines[0].split(',');
+                
+                const newData = {};
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const values = line.split(',');
+                    const name = values[0];
+                    if (!name) continue;
+                    
+                    const monthlyData = {};
+                    
+                    this.months.forEach((month, index) => {
+                        monthlyData[month] = parseFloat(values[index + 1]) || 0;
+                    });
+                    
+                    newData[name] = monthlyData;
+                }
+                
+                if (type === 'savings') {
+                    this.savingsData = newData;
+                    this.renderSavingsTable();
+                } else if (type === 'lending') {
+                    this.lendingData = newData;
+                    this.renderLendingTable();
+                } else if (type === 'emi') {
+                    this.emiData = newData;
+                    this.renderEMITable();
+                }
+                
+                this.saveData();
                 this.updateDashboard();
-                // Clear the file input
-                fileInput.value = '';
+                alert('Data imported successfully!');
             } catch (error) {
-                alert('Error importing data: ' + error.message);
+                console.error('Import error:', error);
+                alert('Error importing file. Please check the format.');
             }
         };
         
         reader.readAsText(file);
     }
-    
-    parseCSV(csv) {
-        const lines = csv.split('\n');
-        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-        const data = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim()) {
-                const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
-                const row = {};
-                headers.forEach((header, index) => {
-                    row[header.toLowerCase().replace(/\s+/g, '_')] = values[index] || '';
-                });
-                data.push(row);
-            }
-        }
-        
-        return data;
+
+    // Utility Functions
+    formatCurrency(amount) {
+        if (amount === 0) return '₹0';
+        const absAmount = Math.abs(amount);
+        const formatted = '₹' + absAmount.toLocaleString('en-IN');
+        return amount < 0 ? formatted + ' (-)' : formatted;
     }
-    
-    importParsedData(data, type) {
-        const dataMap = {
-            'income': 'monthly_income',
-            'savings': 'savings_categories',
-            'emi': 'emi_for_friends',
-            'money_received': 'money_received',
-            'lending': 'money_lending',
-            'borrowing': 'money_borrowing'
-        };
-        
-        if (dataMap[type]) {
-            // Convert string numbers to actual numbers and ensure proper data types
-            data.forEach(item => {
-                Object.keys(item).forEach(key => {
-                    if (key.includes('amount') || key.includes('rate') || key.includes('emis') || key === 'id') {
-                        const num = parseFloat(item[key]);
-                        if (!isNaN(num)) {
-                            item[key] = num;
-                        }
-                    }
-                });
-                
-                // Ensure ID is set properly
-                if (!item.id || isNaN(item.id)) {
-                    item.id = this.getNextId(type);
-                }
-            });
-            
-            this.data[dataMap[type]] = [...this.data[dataMap[type]], ...data];
-            this.saveData();
-        }
+
+    parseCurrency(text) {
+        if (!text) return 0;
+        const cleaned = text.replace(/[₹,\s]/g, '').replace('(-)', '');
+        const num = parseFloat(cleaned) || 0;
+        return text.includes('(-)') ? -num : num;
     }
 }
 
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing Finance Manager...');
-    // Make the finance manager available globally
-    window.financeManager = new FinanceManager();
+// Initialize the application
+let financeTracker;
+document.addEventListener('DOMContentLoaded', () => {
+    financeTracker = new FinanceTracker();
 });

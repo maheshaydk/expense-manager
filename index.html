@@ -1,479 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Personal Finance Manager</title>
-<style>
-  body {
-    font-family: Arial, sans-serif; margin: 0; padding: 0; background:#f4f4f4; color: #333;
-  }
-  header {
-    background:#4CAF50; color:#fff; padding:10px 20px; text-align:center;
-  }
-  nav {
-    display:flex; justify-content: space-around; background:#ddd; padding:8px 0;
-  }
-  nav button {
-    background:#fff; border:none; padding:8px 16px; cursor:pointer; border-radius:4px;
-  }
-  nav button:hover {
-    background:#eee;
-  }
-  .container {
-    padding: 20px; overflow-x: auto;
-  }
-  h2 {
-    margin-top: 0;
-  }
-  /* Tabs content */
-  .tab {
-    display: none;
-  }
-  .active {
-    display: block;
-  }
-  table {
-    border-collapse: collapse; width: 100%; margin-bottom:20px;
-  }
-  th, td {
-    border:1px solid #ccc; padding:8px; text-align:center;
-  }
-  th {
-    background:#eef;
-  }
-  .button {
-    padding: 6px 12px; margin-top:10px; border:none; background:#4CAF50; color:#fff; border-radius:4px; cursor:pointer;
-  }
-  .button:hover {
-    background:#45a049;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Finance Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <div class="container">
+        <header class="header">
+            <h1>Monthly Finance Tracker</h1>
+            <p class="text-secondary">Track your savings, investments, lending, and EMI payments</p>
+        </header>
 
-<header>
-<h1>Personal Finance Manager</h1>
-</header>
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn" data-tab="savings">Savings/Investments</button>
+            <button class="tab-btn" data-tab="lending">Lending/Borrowing</button>
+            <button class="tab-btn" data-tab="emi">EMI Tracking</button>
+            <button class="tab-btn" data-tab="settings">Settings</button>
+        </nav>
 
-<nav>
-<button onclick="showTab('overview')">Overview</button>
-<button onclick="showTab('monthly')">Monthly Data</button>
-<button onclick="showTab('lending')">Lending/ Borrowing</button>
-<button onclick="showTab('emi')">EMI Tracking</button>
-<button onclick="exportCSV()">Export CSV</button>
-<button onclick="importCSV()">Import CSV</button>
-<input type="file" id="importFile" style="display:none" onchange="handleImport(event)">
-</nav>
+        <main class="tab-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-panel active">
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Monthly Savings Overview</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="savingsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
 
-<div class="container">
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Key Metrics</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="metrics-grid">
+                                <div class="metric">
+                                    <div class="metric-label">Total Savings</div>
+                                    <div class="metric-value" id="totalSavings">₹0</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Net Lending</div>
+                                    <div class="metric-value" id="netLending">₹0</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Total EMI Paid</div>
+                                    <div class="metric-value" id="totalEMI">₹0</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Monthly Average</div>
+                                    <div class="metric-value" id="monthlyAverage">₹0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-<!-- Overview / Dashboard -->
-<div id="overview" class="tab"></div>
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Lending/Borrowing Summary</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="chart-container" style="position: relative; height: 250px;">
+                                <canvas id="lendingChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<!-- Monthly Data Entry -->
-<div id="monthly" class="tab">
-<h2>Monthly Financial Data</h2>
-<div id="monthly-table-container"></div>
-<button class="button" onclick="saveMonthlyData()">Save Monthly Data</button>
-</div>
+            <!-- Savings/Investments Tab -->
+            <div id="savings" class="tab-panel">
+                <div class="table-header">
+                    <h2>Savings & Investments Tracker</h2>
+                    <button class="btn btn--secondary" id="addSavingsCategory">Add Category</button>
+                </div>
+                <div class="table-container">
+                    <table id="savingsTable" class="finance-table">
+                        <thead>
+                            <tr>
+                                <th class="category-header">Category</th>
+                                <th>Jan</th>
+                                <th>Feb</th>
+                                <th>Mar</th>
+                                <th>Apr</th>
+                                <th>May</th>
+                                <th>Jun</th>
+                                <th>Jul</th>
+                                <th>Aug</th>
+                                <th>Sep</th>
+                                <th>Oct</th>
+                                <th>Nov</th>
+                                <th>Dec</th>
+                                <th class="total-header">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="savingsTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <th>Total</th>
+                                <th class="month-total" data-month="0">₹0</th>
+                                <th class="month-total" data-month="1">₹0</th>
+                                <th class="month-total" data-month="2">₹0</th>
+                                <th class="month-total" data-month="3">₹0</th>
+                                <th class="month-total" data-month="4">₹0</th>
+                                <th class="month-total" data-month="5">₹0</th>
+                                <th class="month-total" data-month="6">₹0</th>
+                                <th class="month-total" data-month="7">₹0</th>
+                                <th class="month-total" data-month="8">₹0</th>
+                                <th class="month-total" data-month="9">₹0</th>
+                                <th class="month-total" data-month="10">₹0</th>
+                                <th class="month-total" data-month="11">₹0</th>
+                                <th class="grand-total">₹0</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
 
-<!-- Lending/Borrowing -->
-<div id="lending" class="tab">
-<h2>Lending & Borrowing</h2>
-<div id="lending-table-container"></div>
-<button class="button" onclick="saveLendingData()">Save Lending Data</button>
-</div>
+            <!-- Lending/Borrowing Tab -->
+            <div id="lending" class="tab-panel">
+                <div class="table-header">
+                    <h2>Lending & Borrowing Tracker</h2>
+                    <button class="btn btn--secondary" id="addLendingPerson">Add Person</button>
+                </div>
+                <div class="lending-info">
+                    <p><strong>Note:</strong> Positive values = Money lent out, Negative values = Money received back/borrowed</p>
+                </div>
+                <div class="table-container">
+                    <table id="lendingTable" class="finance-table">
+                        <thead>
+                            <tr>
+                                <th class="category-header">Person</th>
+                                <th>Jan</th>
+                                <th>Feb</th>
+                                <th>Mar</th>
+                                <th>Apr</th>
+                                <th>May</th>
+                                <th>Jun</th>
+                                <th>Jul</th>
+                                <th>Aug</th>
+                                <th>Sep</th>
+                                <th>Oct</th>
+                                <th>Nov</th>
+                                <th>Dec</th>
+                                <th class="total-header">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lendingTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <th>Total</th>
+                                <th class="month-total" data-month="0">₹0</th>
+                                <th class="month-total" data-month="1">₹0</th>
+                                <th class="month-total" data-month="2">₹0</th>
+                                <th class="month-total" data-month="3">₹0</th>
+                                <th class="month-total" data-month="4">₹0</th>
+                                <th class="month-total" data-month="5">₹0</th>
+                                <th class="month-total" data-month="6">₹0</th>
+                                <th class="month-total" data-month="7">₹0</th>
+                                <th class="month-total" data-month="8">₹0</th>
+                                <th class="month-total" data-month="9">₹0</th>
+                                <th class="month-total" data-month="10">₹0</th>
+                                <th class="month-total" data-month="11">₹0</th>
+                                <th class="grand-total">₹0</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
 
-<!-- EMI Tracking -->
-<div id="emi" class="tab">
-<h2>EMI Payments</h2>
-<div id="emi-table-container"></div>
-<button class="button" onclick="saveEmiData()">Save EMI Data</button>
-</div>
+            <!-- EMI Tracking Tab -->
+            <div id="emi" class="tab-panel">
+                <div class="table-header">
+                    <h2>EMI Payments Tracker</h2>
+                    <button class="btn btn--secondary" id="addEMIPerson">Add Person</button>
+                </div>
+                <div class="table-container">
+                    <table id="emiTable" class="finance-table">
+                        <thead>
+                            <tr>
+                                <th class="category-header">Person</th>
+                                <th>Jan</th>
+                                <th>Feb</th>
+                                <th>Mar</th>
+                                <th>Apr</th>
+                                <th>May</th>
+                                <th>Jun</th>
+                                <th>Jul</th>
+                                <th>Aug</th>
+                                <th>Sep</th>
+                                <th>Oct</th>
+                                <th>Nov</th>
+                                <th>Dec</th>
+                                <th class="total-header">Total Paid</th>
+                            </tr>
+                        </thead>
+                        <tbody id="emiTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <th>Total</th>
+                                <th class="month-total" data-month="0">₹0</th>
+                                <th class="month-total" data-month="1">₹0</th>
+                                <th class="month-total" data-month="2">₹0</th>
+                                <th class="month-total" data-month="3">₹0</th>
+                                <th class="month-total" data-month="4">₹0</th>
+                                <th class="month-total" data-month="5">₹0</th>
+                                <th class="month-total" data-month="6">₹0</th>
+                                <th class="month-total" data-month="7">₹0</th>
+                                <th class="month-total" data-month="8">₹0</th>
+                                <th class="month-total" data-month="9">₹0</th>
+                                <th class="month-total" data-month="10">₹0</th>
+                                <th class="month-total" data-month="11">₹0</th>
+                                <th class="grand-total">₹0</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
 
-</div>
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-panel">
+                <div class="settings-container">
+                    <h2>Settings & Data Management</h2>
+                    
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Export Data</h3>
+                        </div>
+                        <div class="card__body">
+                            <p>Export your data to CSV files for backup or analysis.</p>
+                            <div class="export-buttons">
+                                <button class="btn btn--primary" id="exportSavings">Export Savings Data</button>
+                                <button class="btn btn--primary" id="exportLending">Export Lending Data</button>
+                                <button class="btn btn--primary" id="exportEMI">Export EMI Data</button>
+                                <button class="btn btn--secondary" id="exportAll">Export All Data</button>
+                            </div>
+                        </div>
+                    </div>
 
-<script>
-// --- Tab control ---
-function showTab(tabId) {
-  document.querySelectorAll('.tab').forEach(t => t.style.display='none');
-  document.getElementById(tabId).style.display='block';
-  if (tabId==='overview') { renderOverview(); }
-  if (tabId==='monthly') { buildMonthlyTable(); }
-  if (tabId==='lending') { buildLendingTable(); }
-  if (tabId==='emi') { buildEmiTable(); }
-}
-showTab('overview'); // default
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Import Data</h3>
+                        </div>
+                        <div class="card__body">
+                            <p>Import data from CSV files. This will replace existing data.</p>
+                            <div class="import-section">
+                                <div class="form-group">
+                                    <label class="form-label">Import Savings Data</label>
+                                    <input type="file" id="importSavings" accept=".csv" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Import Lending Data</label>
+                                    <input type="file" id="importLending" accept=".csv" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Import EMI Data</label>
+                                    <input type="file" id="importEMI" accept=".csv" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-// --- Data storage ---
-let allData = {
-  monthlyData: {}, // {category: {Jan:val, Feb:val,...}, ...}
-  lending: {}, // {person: {Jan:amount,...}, ...}
-  emi: {} // {person: {Jan:amount,...}, ...}
-};
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Data Management</h3>
+                        </div>
+                        <div class="card__body">
+                            <p>Manage your application data.</p>
+                            <div class="data-management">
+                                <button class="btn btn--outline" id="resetData">Reset All Data</button>
+                                <button class="btn btn--outline" id="loadSampleData">Load Sample Data</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
-// Load existing data
-loadAllData();
-
-// --- Utility functions ---
-
-function loadAllData() {
-  const dataStr = localStorage.getItem('pfmData');
-  if (dataStr) {
-    allData = JSON.parse(dataStr);
-  }
-}
-function saveAllData() {
-  localStorage.setItem('pfmData', JSON.stringify(allData));
-}
-
-// --- Overview rendering ---
-function renderOverview() {
-  const container = document.getElementById('overview');
-  container.innerHTML = '';
-  let html = `<h2>Financial Summary</h2>`;
-  // Build summary tables
-  // 1) Total per category
-  const categories = Object.keys(allData.monthlyData);
-  let totalsPerCategory = {};
-  for (let cat of categories) {
-    totalsPerCategory[cat] = 0;
-    for (let month in allData.monthlyData[cat]) {
-      totalsPerCategory[cat] += allData.monthlyData[cat][month];
-    }
-  }
-  html += '<h3>Category Totals</h3><table><tr><th>Category</th><th>Total</th></tr>';
-  for (let c of categories) {
-    html += `<tr><td>${c}</td><td>${totalsPerCategory[c]}</td></tr>`;
-  }
-  html += '</table>';
-
-  // 2) Lending & Borrowing totals
-  let totalLending = 0;
-  for (let person in allData.lending) {
-    for (let month in allData.lending[person]) {
-      totalLending += allData.lending[person][month];
-    }
-  }
-  // 3) EMI total
-  let totalEmi = 0;
-  for (let person in allData.emi) {
-    for (let month in allData.emi[person]) {
-      totalEmi += allData.emi[person][month];
-    }
-  }
-
-  html += `<h3>Lending & Borrowing Total: ${totalLending}</h3>`;
-  html += `<h3>Total EMI Paid: ${totalEmi}</h3>`;
-  container.innerHTML = html;
-}
-
-
-// --- Build Monthly Data Table ---
-function buildMonthlyTable() {
-  const container = document.getElementById('monthly-table-container');
-  container.innerHTML = '';
-  // Define categories
-  const categories = [
-    'Nps Tier I', 'Nps Tier II', 'LIC - Term', 'LIC - Self', 'LIC - Shruthi',
-    'Emergency Fund', 'RD', 'Gold', 'EPF', 'Kuri', 'FD', 'Extra'
-  ];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  // Initialize data if missing
-  for (let cat of categories) {
-    if (!allData.monthlyData[cat]) {
-      allData.monthlyData[cat] = {};
-    }
-    for (let m of months) {
-      if (!(m in allData.monthlyData[cat])) {
-        allData.monthlyData[cat][m] = 0;
-      }
-    }
-  }
-
-  // Build table
-  let html = '<table><thead><tr><th>Category</th>';
-  months.forEach(m => { html += `<th>${m}</th>`; });
-  html += '<th>Total</th></tr></thead><tbody>';
-
-  categories.forEach(cat => {
-    html += `<tr><td>${cat}</td>`;
-    let rowTotal = 0;
-    months.forEach(m => {
-      const val = allData.monthlyData[cat][m];
-      html += `<td contenteditable="true" data-cat="${cat}" data-month="${m}">${val}</td>`;
-      rowTotal += parseFloat(val);
-    });
-    html += `<td class="rowTotal">${rowTotal}</td></tr>`;
-  });
-  html += '</tbody></table>';
-
-  container.innerHTML = html;
-
-  // Add event listeners for editing
-  document.querySelectorAll('#monthly-table-container td[contenteditable]').forEach(td => {
-    td.addEventListener('input', () => {
-      const cat = td.dataset.cat;
-      const m = td.dataset.month;
-      const val = parseFloat(td.textContent) || 0;
-      allData.monthlyData[cat][m] = val;
-      saveAllData();
-      // update row total
-      updateMonthlyTotals();
-      renderOverview();
-    });
-  });
-  // Initialize totals
-  updateMonthlyTotals();
-}
-
-function updateMonthlyTotals() {
-  // For each row, update total cell
-  document.querySelectorAll('#monthly-table-container tbody tr').forEach(row => {
-    let sum = 0;
-    row.querySelectorAll('td[contenteditable]').forEach(td => {
-      sum += parseFloat(td.textContent) || 0;
-    });
-    row.querySelector('.rowTotal').textContent = sum;
-  });
-}
-
-// --- Build Lending Table ---
-function buildLendingTable() {
-  const container = document.getElementById('lending-table-container');
-  container.innerHTML = '';
-
-  // Gather persons
-  const persons = Object.keys(allData.lending);
-  // Create table
-  let html = '<table><thead><tr><th>Person</th>';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  months.forEach(m => { html += `<th>${m}</th>`; });
-  html += '<th>Total</th></tr></thead><tbody>';
-
-  // For each person, ensure data exists
-  persons.forEach(p => {
-    if (!allData.lending[p]) allData.lending[p] = {};
-    html += `<tr><td>${p}</td>`;
-    let total = 0;
-    months.forEach(m => {
-      if (!(m in allData.lending[p])) allData.lending[p][m]=0;
-      const val = allData.lending[p][m];
-      html += `<td contenteditable="true" data-person="${p}" data-month="${m}">${val}</td>`;
-      total += parseFloat(val);
-    });
-    html += `<td class="lendTotal">${total}</td></tr>`;
-  });
-  html += '</tbody></table>';
-
-  container.innerHTML = html;
-
-  // Save data on edit
-  document.querySelectorAll('#lending-table-container td[contenteditable]').forEach(td => {
-    td.addEventListener('input', () => {
-      const p = td.dataset.person;
-      const m = td.dataset.month;
-      const val = parseFloat(td.textContent) || 0;
-      allData.lending[p][m] = val;
-      saveAllData();
-      updateLendingTotals();
-    });
-  });
-  updateLendingTotals();
-}
-
-function updateLendingTotals() {
-  document.querySelectorAll('#lending-table-container tbody tr').forEach(row => {
-    let sum = 0;
-    row.querySelectorAll('td[contenteditable]').forEach(td => {
-      sum += parseFloat(td.textContent) || 0;
-    });
-    row.querySelector('.lendTotal').textContent = sum;
-  });
-}
-
-// --- Build EMI Table ---
-function buildEmiTable() {
-  const container = document.getElementById('emi-table-container');
-  container.innerHTML = '';
-
-  // Gather persons
-  const persons = Object.keys(allData.emi);
-  // Create table
-  let html = '<table><thead><tr><th>Person</th>';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  months.forEach(m => { html += `<th>${m}</th>`; });
-  html += '<th>Total</th></tr></thead><tbody>';
-
-  persons.forEach(p => {
-    if (!allData.emi[p]) allData.emi[p] = {};
-    html += `<tr><td>${p}</td>`;
-    let total = 0;
-    months.forEach(m => {
-      if (!(m in allData.emi[p])) allData.emi[p][m]=0;
-      const val = allData.emi[p][m];
-      html += `<td contenteditable="true" data-person="${p}" data-month="${m}">${val}</td>`;
-      total += parseFloat(val);
-    });
-    html += `<td class="emiTotal">${total}</td></tr>`;
-  });
-  html += '</tbody></table>';
-
-  container.innerHTML = html;
-
-  document.querySelectorAll('#emi-table-container td[contenteditable]').forEach(td => {
-    td.addEventListener('input', () => {
-      const p = td.dataset.person;
-      const m = td.dataset.month;
-      const val = parseFloat(td.textContent) || 0;
-      allData.emi[p][m] = val;
-      saveAllData();
-      updateEmiTotals();
-    });
-  });
-  updateEmiTotals();
-}
-
-function updateEmiTotals() {
-  document.querySelectorAll('#emi-table-container tbody tr').forEach(row => {
-    let sum=0;
-    row.querySelectorAll('td[contenteditable]').forEach(td => {
-      sum+=parseFloat(td.textContent)||0;
-    });
-    row.querySelector('.emiTotal').textContent = sum;
-  });
-}
-
-// --- Save functions ---
-function saveMonthlyData() {
-  saveAllData();
-  alert('Monthly data saved.');
-}
-function saveLendingData() {
-  saveAllData();
-  alert('Lending data saved.');
-}
-function saveEmiData() {
-  saveAllData();
-  alert('EMI data saved.');
-}
-
-// --- CSV Import/Export ---
-function exportCSV() {
-  // Compile CSV string
-  let csvContent = '';
-  // Monthly data
-  csvContent += 'Monthly Data\nCategory,' + Object.keys(allData.monthlyData['Nps Tier I']).map(m => m).join(',') + ',Total\n';
-  for (let cat in allData.monthlyData) {
-    let row = [cat];
-    let total=0;
-    for (let m in allData.monthlyData[cat]) {
-      const val = allData.monthlyData[cat][m];
-      row.push(val);
-      total+=parseFloat(val);
-    }
-    row.push(total);
-    csvContent += row.join(',')+'\n';
-  }
-  // Lending
-  csvContent += '\nLending & Borrowing\nPerson,'+Object.keys(allData.lending).join(',')+'\n';
-  for (let person in allData.lending) {
-    let row=[''+person];
-    for (let m in allData.lending[person]) {
-      row.push(allData.lending[person][m]);
-    }
-    csvContent += row.join(',')+'\n';
-  }
-  // EMI
-  csvContent += '\nEMI Payments\nPerson,'+Object.keys(allData.emi).join(',')+'\n';
-  for (let person in allData.emi) {
-    let row=[''+person];
-    for (let m in allData.emi[person]) {
-      row.push(allData.emi[person][m]);
-    }
-    csvContent += row.join(',')+'\n';
-  }
-
-  const blob = new Blob([csvContent], {type: 'text/csv'});
-  const url= URL.createObjectURL(blob);
-  const a= document.createElement('a');
-  a.href= url;
-  a.download='financial_data.csv';
-  a.click();
-}
-function importCSV() {
-  document.getElementById('importFile').click();
-}
-function handleImport(event) {
-  const file= event.target.files[0];
-  const reader= new FileReader();
-  reader.onload= function(e) {
-    parseCSV(e.target.result);
-  }
-  reader.readAsText(file);
-}
-function parseCSV(csv) {
-  const lines = csv.split('\n').map(l=>l.trim()).filter(l=>l);
-  let mode='';
-  let headers=[];
-  let currentSection='';
-  for (let line of lines) {
-    if (line.startsWith('Monthly Data')) {
-      mode='monthly';
-      continue;
-    }
-    if (line.startsWith('Lending')) {
-      mode='lending';
-      continue;
-    }
-    if (line.startsWith('EMI')) {
-      mode='emi';
-      continue;
-    }
-    if (line.startsWith('Category')) {
-      headers = line.split(',').map(s=>s.trim());
-      continue;
-    }
-    if (mode==='monthly') {
-      // Parse monthly data
-      const parts= line.split(',').map(s=>s.trim());
-      const cat= parts[0];
-      if (!allData.monthlyData[cat]) allData.monthlyData[cat]={};
-      for (let i=1; i<parts.length-1; i++) {
-        const val= parseFloat(parts[i])||0;
-        const m= headers[i];
-        allData.monthlyData[cat][m]=val;
-      }
-    } else if (mode==='lending') {
-      const parts= line.split(',').map(s=>s.trim());
-      const person= parts[0];
-      if (!allData.lending[person]) allData.lending[person]={};
-      for (let i=1; i<parts.length; i++) {
-        const m=headers[i];
-        const val= parseFloat(parts[i])||0;
-        allData.lending[person][m]=val;
-      }
-    } else if (mode==='emi') {
-      const parts= line.split(',').map(s=>s.trim());
-      const person= parts[0];
-      if (!allData.emi[person]) allData.emi[person]={};
-      for (let i=1; i<parts.length; i++) {
-        const m=headers[i];
-        const val= parseFloat(parts[i])||0;
-        allData.emi[person][m]=val;
-      }
-    }
-  }
-  saveAllData();
-  alert('Data imported successfully.');
-  // Rebuild views
-  showTab('overview');
-  buildMonthlyTable();
-  buildLendingTable();
-  buildEmiTable();
-}
-</script>
+    <script src="app.js"></script>
 </body>
 </html>
