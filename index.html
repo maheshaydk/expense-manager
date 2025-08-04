@@ -1,283 +1,479 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Finance Manager</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Personal Finance Manager</title>
+<style>
+  body {
+    font-family: Arial, sans-serif; margin: 0; padding: 0; background:#f4f4f4; color: #333;
+  }
+  header {
+    background:#4CAF50; color:#fff; padding:10px 20px; text-align:center;
+  }
+  nav {
+    display:flex; justify-content: space-around; background:#ddd; padding:8px 0;
+  }
+  nav button {
+    background:#fff; border:none; padding:8px 16px; cursor:pointer; border-radius:4px;
+  }
+  nav button:hover {
+    background:#eee;
+  }
+  .container {
+    padding: 20px; overflow-x: auto;
+  }
+  h2 {
+    margin-top: 0;
+  }
+  /* Tabs content */
+  .tab {
+    display: none;
+  }
+  .active {
+    display: block;
+  }
+  table {
+    border-collapse: collapse; width: 100%; margin-bottom:20px;
+  }
+  th, td {
+    border:1px solid #ccc; padding:8px; text-align:center;
+  }
+  th {
+    background:#eef;
+  }
+  .button {
+    padding: 6px 12px; margin-top:10px; border:none; background:#4CAF50; color:#fff; border-radius:4px; cursor:pointer;
+  }
+  .button:hover {
+    background:#45a049;
+  }
+</style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="container">
-                <h1>Personal Finance Manager</h1>
-                <nav class="nav-tabs">
-                    <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
-                    <button class="nav-tab" data-tab="income">Income</button>
-                    <button class="nav-tab" data-tab="savings">Savings</button>
-                    <button class="nav-tab" data-tab="emi">EMI Tracking</button>
-                    <button class="nav-tab" data-tab="lending">Lending/Borrowing</button>
-                    <button class="nav-tab" data-tab="settings">Settings</button>
-                </nav>
-            </div>
-        </header>
 
-        <main class="app-main">
-            <div class="container">
-                <!-- Dashboard Tab -->
-                <div id="dashboard-tab" class="tab-content active">
-                    <h2>Financial Overview</h2>
-                    <div class="dashboard-cards">
-                        <div class="card dashboard-card">
-                            <div class="card__body">
-                                <h3>Monthly Income</h3>
-                                <div class="metric-value" id="total-income">₹0</div>
-                            </div>
-                        </div>
-                        <div class="card dashboard-card">
-                            <div class="card__body">
-                                <h3>Savings Progress</h3>
-                                <div class="metric-value" id="savings-progress">0%</div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" id="savings-progress-bar"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card dashboard-card">
-                            <div class="card__body">
-                                <h3>EMI Outstanding</h3>
-                                <div class="metric-value" id="emi-outstanding">₹0</div>
-                            </div>
-                        </div>
-                        <div class="card dashboard-card">
-                            <div class="card__body">
-                                <h3>Lending Balance</h3>
-                                <div class="metric-value" id="lending-balance">₹0</div>
-                            </div>
-                        </div>
-                        <div class="card dashboard-card">
-                            <div class="card__body">
-                                <h3>Borrowing Balance</h3>
-                                <div class="metric-value" id="borrowing-balance">₹0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<header>
+<h1>Personal Finance Manager</h1>
+</header>
 
-                <!-- Income Tab -->
-                <div id="income-tab" class="tab-content">
-                    <div class="section-header">
-                        <h2>Income Management</h2>
-                        <button class="btn btn--primary" id="add-income-btn">Add Income</button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card__body">
-                            <h3>Income History</h3>
-                            <div class="table-container">
-                                <table id="income-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Source</th>
-                                            <th>Category</th>
-                                            <th>Amount</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<nav>
+<button onclick="showTab('overview')">Overview</button>
+<button onclick="showTab('monthly')">Monthly Data</button>
+<button onclick="showTab('lending')">Lending/ Borrowing</button>
+<button onclick="showTab('emi')">EMI Tracking</button>
+<button onclick="exportCSV()">Export CSV</button>
+<button onclick="importCSV()">Import CSV</button>
+<input type="file" id="importFile" style="display:none" onchange="handleImport(event)">
+</nav>
 
-                <!-- Savings Tab -->
-                <div id="savings-tab" class="tab-content">
-                    <div class="section-header">
-                        <h2>Savings Goals</h2>
-                        <button class="btn btn--primary" id="add-savings-btn">Add Savings Goal</button>
-                    </div>
-                    
-                    <div id="savings-categories"></div>
-                </div>
+<div class="container">
 
-                <!-- EMI Tab -->
-                <div id="emi-tab" class="tab-content">
-                    <div class="section-header">
-                        <h2>EMI Tracking for Friends</h2>
-                        <div class="button-group">
-                            <button class="btn btn--primary" id="add-emi-btn">Add EMI</button>
-                            <button class="btn btn--secondary" id="add-money-received-btn">Record Payment</button>
-                        </div>
-                    </div>
-                    
-                    <div class="emi-sections">
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Active EMIs</h3>
-                                <div class="table-container">
-                                    <table id="emi-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Friend</th>
-                                                <th>Loan Amount</th>
-                                                <th>EMI Amount</th>
-                                                <th>Remaining EMIs</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+<!-- Overview / Dashboard -->
+<div id="overview" class="tab"></div>
 
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Money Received</h3>
-                                <div class="table-container">
-                                    <table id="money-received-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Friend</th>
-                                                <th>Amount</th>
-                                                <th>Payment Method</th>
-                                                <th>Purpose</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<!-- Monthly Data Entry -->
+<div id="monthly" class="tab">
+<h2>Monthly Financial Data</h2>
+<div id="monthly-table-container"></div>
+<button class="button" onclick="saveMonthlyData()">Save Monthly Data</button>
+</div>
 
-                <!-- Lending/Borrowing Tab -->
-                <div id="lending-tab" class="tab-content">
-                    <div class="section-header">
-                        <h2>Money Lending & Borrowing</h2>
-                        <div class="button-group">
-                            <button class="btn btn--primary" id="add-lending-btn">Record Lending</button>
-                            <button class="btn btn--secondary" id="add-borrowing-btn">Record Borrowing</button>
-                        </div>
-                    </div>
-                    
-                    <div class="lending-sections">
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Money Lent</h3>
-                                <div class="table-container">
-                                    <table id="lending-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Borrower</th>
-                                                <th>Amount</th>
-                                                <th>Date Lent</th>
-                                                <th>Due Date</th>
-                                                <th>Interest Rate</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+<!-- Lending/Borrowing -->
+<div id="lending" class="tab">
+<h2>Lending & Borrowing</h2>
+<div id="lending-table-container"></div>
+<button class="button" onclick="saveLendingData()">Save Lending Data</button>
+</div>
 
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Money Borrowed</h3>
-                                <div class="table-container">
-                                    <table id="borrowing-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Lender</th>
-                                                <th>Amount</th>
-                                                <th>Date Borrowed</th>
-                                                <th>Due Date</th>
-                                                <th>Interest Rate</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<!-- EMI Tracking -->
+<div id="emi" class="tab">
+<h2>EMI Payments</h2>
+<div id="emi-table-container"></div>
+<button class="button" onclick="saveEmiData()">Save EMI Data</button>
+</div>
 
-                <!-- Settings Tab -->
-                <div id="settings-tab" class="tab-content">
-                    <h2>Data Management</h2>
-                    
-                    <div class="settings-sections">
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Export Data</h3>
-                                <p>Download your data as CSV files for backup or analysis.</p>
-                                <div class="button-group">
-                                    <button class="btn btn--outline" id="export-income">Export Income</button>
-                                    <button class="btn btn--outline" id="export-savings">Export Savings</button>
-                                    <button class="btn btn--outline" id="export-emi">Export EMI Data</button>
-                                    <button class="btn btn--outline" id="export-lending">Export Lending</button>
-                                    <button class="btn btn--outline" id="export-borrowing">Export Borrowing</button>
-                                </div>
-                            </div>
-                        </div>
+</div>
 
-                        <div class="card">
-                            <div class="card__body">
-                                <h3>Import Data</h3>
-                                <p>Import data from CSV files. Make sure the CSV format matches the export format.</p>
-                                <div class="import-section">
-                                    <input type="file" id="import-file" accept=".csv" class="form-control">
-                                    <select id="import-type" class="form-control">
-                                        <option value="">Select data type</option>
-                                        <option value="income">Income Data</option>
-                                        <option value="savings">Savings Data</option>
-                                        <option value="emi">EMI Data</option>
-                                        <option value="money_received">Money Received Data</option>
-                                        <option value="lending">Lending Data</option>
-                                        <option value="borrowing">Borrowing Data</option>
-                                    </select>
-                                    <button class="btn btn--primary" id="import-data-btn">Import Data</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
+<script>
+// --- Tab control ---
+function showTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.style.display='none');
+  document.getElementById(tabId).style.display='block';
+  if (tabId==='overview') { renderOverview(); }
+  if (tabId==='monthly') { buildMonthlyTable(); }
+  if (tabId==='lending') { buildLendingTable(); }
+  if (tabId==='emi') { buildEmiTable(); }
+}
+showTab('overview'); // default
 
-    <!-- Modals -->
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="modal-title">Add Entry</h3>
-                    <button class="modal-close" id="modal-close-btn">&times;</button>
-                </div>
-                <div class="modal-body" id="modal-body">
-                    <!-- Modal content will be dynamically inserted here -->
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn--secondary" id="modal-cancel-btn">Cancel</button>
-                    <button class="btn btn--primary" id="modal-save-btn">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
+// --- Data storage ---
+let allData = {
+  monthlyData: {}, // {category: {Jan:val, Feb:val,...}, ...}
+  lending: {}, // {person: {Jan:amount,...}, ...}
+  emi: {} // {person: {Jan:amount,...}, ...}
+};
 
-    <script src="app.js"></script>
+// Load existing data
+loadAllData();
+
+// --- Utility functions ---
+
+function loadAllData() {
+  const dataStr = localStorage.getItem('pfmData');
+  if (dataStr) {
+    allData = JSON.parse(dataStr);
+  }
+}
+function saveAllData() {
+  localStorage.setItem('pfmData', JSON.stringify(allData));
+}
+
+// --- Overview rendering ---
+function renderOverview() {
+  const container = document.getElementById('overview');
+  container.innerHTML = '';
+  let html = `<h2>Financial Summary</h2>`;
+  // Build summary tables
+  // 1) Total per category
+  const categories = Object.keys(allData.monthlyData);
+  let totalsPerCategory = {};
+  for (let cat of categories) {
+    totalsPerCategory[cat] = 0;
+    for (let month in allData.monthlyData[cat]) {
+      totalsPerCategory[cat] += allData.monthlyData[cat][month];
+    }
+  }
+  html += '<h3>Category Totals</h3><table><tr><th>Category</th><th>Total</th></tr>';
+  for (let c of categories) {
+    html += `<tr><td>${c}</td><td>${totalsPerCategory[c]}</td></tr>`;
+  }
+  html += '</table>';
+
+  // 2) Lending & Borrowing totals
+  let totalLending = 0;
+  for (let person in allData.lending) {
+    for (let month in allData.lending[person]) {
+      totalLending += allData.lending[person][month];
+    }
+  }
+  // 3) EMI total
+  let totalEmi = 0;
+  for (let person in allData.emi) {
+    for (let month in allData.emi[person]) {
+      totalEmi += allData.emi[person][month];
+    }
+  }
+
+  html += `<h3>Lending & Borrowing Total: ${totalLending}</h3>`;
+  html += `<h3>Total EMI Paid: ${totalEmi}</h3>`;
+  container.innerHTML = html;
+}
+
+
+// --- Build Monthly Data Table ---
+function buildMonthlyTable() {
+  const container = document.getElementById('monthly-table-container');
+  container.innerHTML = '';
+  // Define categories
+  const categories = [
+    'Nps Tier I', 'Nps Tier II', 'LIC - Term', 'LIC - Self', 'LIC - Shruthi',
+    'Emergency Fund', 'RD', 'Gold', 'EPF', 'Kuri', 'FD', 'Extra'
+  ];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Initialize data if missing
+  for (let cat of categories) {
+    if (!allData.monthlyData[cat]) {
+      allData.monthlyData[cat] = {};
+    }
+    for (let m of months) {
+      if (!(m in allData.monthlyData[cat])) {
+        allData.monthlyData[cat][m] = 0;
+      }
+    }
+  }
+
+  // Build table
+  let html = '<table><thead><tr><th>Category</th>';
+  months.forEach(m => { html += `<th>${m}</th>`; });
+  html += '<th>Total</th></tr></thead><tbody>';
+
+  categories.forEach(cat => {
+    html += `<tr><td>${cat}</td>`;
+    let rowTotal = 0;
+    months.forEach(m => {
+      const val = allData.monthlyData[cat][m];
+      html += `<td contenteditable="true" data-cat="${cat}" data-month="${m}">${val}</td>`;
+      rowTotal += parseFloat(val);
+    });
+    html += `<td class="rowTotal">${rowTotal}</td></tr>`;
+  });
+  html += '</tbody></table>';
+
+  container.innerHTML = html;
+
+  // Add event listeners for editing
+  document.querySelectorAll('#monthly-table-container td[contenteditable]').forEach(td => {
+    td.addEventListener('input', () => {
+      const cat = td.dataset.cat;
+      const m = td.dataset.month;
+      const val = parseFloat(td.textContent) || 0;
+      allData.monthlyData[cat][m] = val;
+      saveAllData();
+      // update row total
+      updateMonthlyTotals();
+      renderOverview();
+    });
+  });
+  // Initialize totals
+  updateMonthlyTotals();
+}
+
+function updateMonthlyTotals() {
+  // For each row, update total cell
+  document.querySelectorAll('#monthly-table-container tbody tr').forEach(row => {
+    let sum = 0;
+    row.querySelectorAll('td[contenteditable]').forEach(td => {
+      sum += parseFloat(td.textContent) || 0;
+    });
+    row.querySelector('.rowTotal').textContent = sum;
+  });
+}
+
+// --- Build Lending Table ---
+function buildLendingTable() {
+  const container = document.getElementById('lending-table-container');
+  container.innerHTML = '';
+
+  // Gather persons
+  const persons = Object.keys(allData.lending);
+  // Create table
+  let html = '<table><thead><tr><th>Person</th>';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  months.forEach(m => { html += `<th>${m}</th>`; });
+  html += '<th>Total</th></tr></thead><tbody>';
+
+  // For each person, ensure data exists
+  persons.forEach(p => {
+    if (!allData.lending[p]) allData.lending[p] = {};
+    html += `<tr><td>${p}</td>`;
+    let total = 0;
+    months.forEach(m => {
+      if (!(m in allData.lending[p])) allData.lending[p][m]=0;
+      const val = allData.lending[p][m];
+      html += `<td contenteditable="true" data-person="${p}" data-month="${m}">${val}</td>`;
+      total += parseFloat(val);
+    });
+    html += `<td class="lendTotal">${total}</td></tr>`;
+  });
+  html += '</tbody></table>';
+
+  container.innerHTML = html;
+
+  // Save data on edit
+  document.querySelectorAll('#lending-table-container td[contenteditable]').forEach(td => {
+    td.addEventListener('input', () => {
+      const p = td.dataset.person;
+      const m = td.dataset.month;
+      const val = parseFloat(td.textContent) || 0;
+      allData.lending[p][m] = val;
+      saveAllData();
+      updateLendingTotals();
+    });
+  });
+  updateLendingTotals();
+}
+
+function updateLendingTotals() {
+  document.querySelectorAll('#lending-table-container tbody tr').forEach(row => {
+    let sum = 0;
+    row.querySelectorAll('td[contenteditable]').forEach(td => {
+      sum += parseFloat(td.textContent) || 0;
+    });
+    row.querySelector('.lendTotal').textContent = sum;
+  });
+}
+
+// --- Build EMI Table ---
+function buildEmiTable() {
+  const container = document.getElementById('emi-table-container');
+  container.innerHTML = '';
+
+  // Gather persons
+  const persons = Object.keys(allData.emi);
+  // Create table
+  let html = '<table><thead><tr><th>Person</th>';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  months.forEach(m => { html += `<th>${m}</th>`; });
+  html += '<th>Total</th></tr></thead><tbody>';
+
+  persons.forEach(p => {
+    if (!allData.emi[p]) allData.emi[p] = {};
+    html += `<tr><td>${p}</td>`;
+    let total = 0;
+    months.forEach(m => {
+      if (!(m in allData.emi[p])) allData.emi[p][m]=0;
+      const val = allData.emi[p][m];
+      html += `<td contenteditable="true" data-person="${p}" data-month="${m}">${val}</td>`;
+      total += parseFloat(val);
+    });
+    html += `<td class="emiTotal">${total}</td></tr>`;
+  });
+  html += '</tbody></table>';
+
+  container.innerHTML = html;
+
+  document.querySelectorAll('#emi-table-container td[contenteditable]').forEach(td => {
+    td.addEventListener('input', () => {
+      const p = td.dataset.person;
+      const m = td.dataset.month;
+      const val = parseFloat(td.textContent) || 0;
+      allData.emi[p][m] = val;
+      saveAllData();
+      updateEmiTotals();
+    });
+  });
+  updateEmiTotals();
+}
+
+function updateEmiTotals() {
+  document.querySelectorAll('#emi-table-container tbody tr').forEach(row => {
+    let sum=0;
+    row.querySelectorAll('td[contenteditable]').forEach(td => {
+      sum+=parseFloat(td.textContent)||0;
+    });
+    row.querySelector('.emiTotal').textContent = sum;
+  });
+}
+
+// --- Save functions ---
+function saveMonthlyData() {
+  saveAllData();
+  alert('Monthly data saved.');
+}
+function saveLendingData() {
+  saveAllData();
+  alert('Lending data saved.');
+}
+function saveEmiData() {
+  saveAllData();
+  alert('EMI data saved.');
+}
+
+// --- CSV Import/Export ---
+function exportCSV() {
+  // Compile CSV string
+  let csvContent = '';
+  // Monthly data
+  csvContent += 'Monthly Data\nCategory,' + Object.keys(allData.monthlyData['Nps Tier I']).map(m => m).join(',') + ',Total\n';
+  for (let cat in allData.monthlyData) {
+    let row = [cat];
+    let total=0;
+    for (let m in allData.monthlyData[cat]) {
+      const val = allData.monthlyData[cat][m];
+      row.push(val);
+      total+=parseFloat(val);
+    }
+    row.push(total);
+    csvContent += row.join(',')+'\n';
+  }
+  // Lending
+  csvContent += '\nLending & Borrowing\nPerson,'+Object.keys(allData.lending).join(',')+'\n';
+  for (let person in allData.lending) {
+    let row=[''+person];
+    for (let m in allData.lending[person]) {
+      row.push(allData.lending[person][m]);
+    }
+    csvContent += row.join(',')+'\n';
+  }
+  // EMI
+  csvContent += '\nEMI Payments\nPerson,'+Object.keys(allData.emi).join(',')+'\n';
+  for (let person in allData.emi) {
+    let row=[''+person];
+    for (let m in allData.emi[person]) {
+      row.push(allData.emi[person][m]);
+    }
+    csvContent += row.join(',')+'\n';
+  }
+
+  const blob = new Blob([csvContent], {type: 'text/csv'});
+  const url= URL.createObjectURL(blob);
+  const a= document.createElement('a');
+  a.href= url;
+  a.download='financial_data.csv';
+  a.click();
+}
+function importCSV() {
+  document.getElementById('importFile').click();
+}
+function handleImport(event) {
+  const file= event.target.files[0];
+  const reader= new FileReader();
+  reader.onload= function(e) {
+    parseCSV(e.target.result);
+  }
+  reader.readAsText(file);
+}
+function parseCSV(csv) {
+  const lines = csv.split('\n').map(l=>l.trim()).filter(l=>l);
+  let mode='';
+  let headers=[];
+  let currentSection='';
+  for (let line of lines) {
+    if (line.startsWith('Monthly Data')) {
+      mode='monthly';
+      continue;
+    }
+    if (line.startsWith('Lending')) {
+      mode='lending';
+      continue;
+    }
+    if (line.startsWith('EMI')) {
+      mode='emi';
+      continue;
+    }
+    if (line.startsWith('Category')) {
+      headers = line.split(',').map(s=>s.trim());
+      continue;
+    }
+    if (mode==='monthly') {
+      // Parse monthly data
+      const parts= line.split(',').map(s=>s.trim());
+      const cat= parts[0];
+      if (!allData.monthlyData[cat]) allData.monthlyData[cat]={};
+      for (let i=1; i<parts.length-1; i++) {
+        const val= parseFloat(parts[i])||0;
+        const m= headers[i];
+        allData.monthlyData[cat][m]=val;
+      }
+    } else if (mode==='lending') {
+      const parts= line.split(',').map(s=>s.trim());
+      const person= parts[0];
+      if (!allData.lending[person]) allData.lending[person]={};
+      for (let i=1; i<parts.length; i++) {
+        const m=headers[i];
+        const val= parseFloat(parts[i])||0;
+        allData.lending[person][m]=val;
+      }
+    } else if (mode==='emi') {
+      const parts= line.split(',').map(s=>s.trim());
+      const person= parts[0];
+      if (!allData.emi[person]) allData.emi[person]={};
+      for (let i=1; i<parts.length; i++) {
+        const m=headers[i];
+        const val= parseFloat(parts[i])||0;
+        allData.emi[person][m]=val;
+      }
+    }
+  }
+  saveAllData();
+  alert('Data imported successfully.');
+  // Rebuild views
+  showTab('overview');
+  buildMonthlyTable();
+  buildLendingTable();
+  buildEmiTable();
+}
+</script>
 </body>
 </html>
